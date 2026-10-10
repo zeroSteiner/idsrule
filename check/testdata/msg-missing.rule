@@ -1,0 +1,6 @@
+# lint: placeholder-below=100
+# expect: msg-missing error "rule has no msg"
+alert tcp any any -> any any (sid:500; rev:1;)
+alert tcp any any -> any any (msg:"ok"; sid:501; rev:1;)
+# A placeholder sid without a msg belongs to sid-placeholder-without-msg.
+alert tcp any any -> any any (sid:5; rev:1;)

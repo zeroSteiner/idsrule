@@ -1,0 +1,5 @@
+# lint: placeholder-below=100 checks=sid-placeholder-without-msg,msg-missing
+# expect: sid-placeholder-without-msg error
+alert tcp any any -> any any (sid:1; rev:1;)
+# expect: msg-missing error
+alert tcp any any -> any any (sid:500; rev:1;)

@@ -1,0 +1,4 @@
+# lint: dialect=snort2
+# expect: modifier-without-content error ""nocase" modifies a content but none precedes it"
+alert tcp any any -> any any (msg:"a"; nocase; content:"x"; sid:1; rev:1;)
+alert tcp any any -> any any (msg:"b"; content:"x"; nocase; http_uri; sid:2; rev:1;)

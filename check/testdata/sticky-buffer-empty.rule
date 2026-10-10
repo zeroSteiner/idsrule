@@ -1,0 +1,6 @@
+# lint: dialect=suricata
+# expect: sticky-buffer-empty warning "sticky buffer "http.method" has no content, pcre or buffer test after it"
+alert http any any -> any any (msg:"a"; http.method; http.uri; content:"/x"; sid:1; rev:1;)
+# expect: sticky-buffer-empty warning "sticky buffer "http.header" has no content, pcre or buffer test after it"
+alert http any any -> any any (msg:"b"; http.uri; content:"/x"; http.header; sid:2; rev:1;)
+alert http any any -> any any (msg:"c"; http.uri; content:"/x"; http.header; pcre:"/x/"; sid:3; rev:1;)

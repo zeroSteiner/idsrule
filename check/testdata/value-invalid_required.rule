@@ -1,0 +1,3 @@
+# lint: dialect=snort2
+# expect: value-invalid error "sid requires a value"
+alert tcp any any -> any any (msg:"a"; sid; rev:1;)

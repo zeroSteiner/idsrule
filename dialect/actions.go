@@ -1,6 +1,9 @@
 package dialect
 
-import "slices"
+import (
+	"slices"
+	"strings"
+)
 
 // snort2Actions are the rule actions of Snort 2.9, in the manual's order.
 var snort2Actions = []string{"alert", "log", "pass", "activate", "dynamic", "drop", "reject", "sdrop"}
@@ -23,9 +26,16 @@ func (d Dialect) Actions() []string {
 }
 
 // IsAction reports whether s is a rule action of d; for Unknown or an
-// undefined dialect, of any dialect.
+// undefined dialect, of any dialect. The comparison ignores case, as both
+// engines do.
 func (d Dialect) IsAction(s string) bool {
-	return slices.Contains(d.Actions(), s)
+	return containsFold(d.Actions(), s)
+}
+
+// containsFold reports whether list holds s, compared without regard to
+// case.
+func containsFold(list []string, s string) bool {
+	return slices.ContainsFunc(list, func(item string) bool { return strings.EqualFold(item, s) })
 }
 
 // union returns the sorted set of the strings of every list.

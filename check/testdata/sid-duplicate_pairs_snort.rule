@@ -1,0 +1,2 @@
+# lint: dialect=snort2 sid-index=pairs-snort
+alert tcp any any -> any any (msg:"pair"; sid:12900020; rev:1;)

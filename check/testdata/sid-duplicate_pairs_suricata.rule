@@ -1,0 +1,2 @@
+# lint: dialect=suricata sid-index=pairs-suricata
+alert tcp any any -> any any (msg:"pair"; sid:12900020; rev:1;)

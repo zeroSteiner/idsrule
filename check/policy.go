@@ -1,6 +1,9 @@
-// Package check holds the configuration shared by the rule checks: the
-// policy a rule set is held to, the selection of which checks run, and the
-// SID index that cross-file checks consult.
+// Package check holds the rule checks and what they run with: the Policy a
+// rule set is held to, the Selection of which checks run and how they
+// report, the SIDIndex that the cross-file sid check consults, the registry
+// the checks are registered in (Register, All, Lookup), the Context a check
+// sees for one file, and Run, which executes the selected checks over a
+// parsed file and returns their diagnostics.
 package check
 
 import (

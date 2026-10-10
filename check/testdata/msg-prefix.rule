@@ -1,0 +1,4 @@
+# lint: msg-prefix="VC "
+alert tcp any any -> any any (msg:"VC prefixed"; sid:1; rev:1;)
+# expect: msg-prefix warning "msg does not start with "VC ""
+alert tcp any any -> any any (msg:"not prefixed"; sid:2; rev:1;)

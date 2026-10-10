@@ -1,0 +1,5 @@
+# lint: dialect=snort2
+# expect: value-invalid error "threshold requires type"
+alert tcp any any -> any any (msg:"a"; threshold:track by_src, count 5, seconds 60; sid:1; rev:1;)
+alert tcp any any -> any any (msg:"b"; detection_filter:track by_src, count 5, seconds 60; sid:2; rev:1;)
+alert tcp any any -> any any (msg:"c"; threshold:type limit, track by_src, count 5, seconds 60; sid:3; rev:1;)

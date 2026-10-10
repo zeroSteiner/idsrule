@@ -1,0 +1,4 @@
+alert tcp any any -> any any (msg:"Same  Thing"; sid:1; rev:1;)
+# expect: msg-duplicate error "duplicate msg "same thing""
+alert tcp any any -> any any (msg:"same thing"; sid:2; rev:1;)
+alert tcp any any -> any any (msg:"other thing"; sid:3; rev:1;)

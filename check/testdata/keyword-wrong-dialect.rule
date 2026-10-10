@@ -1,0 +1,6 @@
+# lint: dialect=snort2
+# expect: keyword-wrong-dialect error ""http.method" is a suricata keyword; use "http_method""
+alert tcp any any -> any any (msg:"a"; http.method; content:"GET"; sid:1; rev:1;)
+# expect: keyword-wrong-dialect error ""http.user_agent" is a suricata keyword with no snort2 equivalent"
+alert tcp any any -> any any (msg:"b"; http.user_agent; content:"curl"; sid:2; rev:1;)
+alert tcp any any -> any any (msg:"c"; content:"GET"; http_method; sid:3; rev:1;)

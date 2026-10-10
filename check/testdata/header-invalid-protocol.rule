@@ -1,0 +1,9 @@
+# lint: dialect=snort2
+# expect: header-invalid-protocol error ""http" is not a snort2 protocol"
+alert http any any -> any any (msg:"a"; sid:1; rev:1;)
+# expect: header-invalid-protocol error ""47" is not a snort2 protocol"
+alert 47 any any -> any any (msg:"b"; sid:2; rev:1;)
+# expect: header-invalid-protocol error ""gre" is not a snort2 protocol"
+alert gre any any -> any any (msg:"c"; sid:3; rev:1;)
+alert TCP any any -> any any (msg:"d"; sid:4; rev:1;)
+alert tcp any any -> any any (msg:"e"; sid:5; rev:1;)

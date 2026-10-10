@@ -1,0 +1,6 @@
+# lint: dialect=snort2
+# expect: option-duplicate error "option "flow" appears more than once"
+alert tcp any any -> any any (msg:"a"; flow:established; flow:to_server; sid:1; rev:1;)
+alert tcp any any -> any any (msg:"b"; content:"x"; content:"y"; sid:2; rev:1;)
+# expect: option-duplicate error "option "fast_pattern" appears more than once"
+alert tcp any any -> any any (msg:"c"; content:"x"; fast_pattern; content:"y"; fast_pattern; sid:3; rev:1;)

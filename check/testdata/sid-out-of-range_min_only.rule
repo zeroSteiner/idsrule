@@ -1,0 +1,4 @@
+# lint: sid-min=1000
+# expect: sid-out-of-range error "sid 5 is outside the policy range (at least 1000)"
+alert tcp any any -> any any (msg:"low"; sid:5; rev:1;)
+alert tcp any any -> any any (msg:"ok"; sid:1000; rev:1;)

@@ -38,7 +38,8 @@ func TestOptionsValidate(t *testing.T) {
 		{name: "invalid dialect", opts: idsrule.Options{Dialect: idsrule.Dialect(99)}, wantErr: "invalid dialect Dialect(99)"},
 		{name: "invalid policy", opts: idsrule.Options{Policy: idsrule.Policy{SIDMin: 5, SIDMax: 1}}, wantErr: "policy: sid range"},
 		{name: "invalid checks", opts: idsrule.Options{Checks: idsrule.Selection{Enable: []string{"x"}, Disable: []string{"x"}}}, wantErr: `checks: check "x" is both enabled and disabled`},
-		{name: "unknown check ids pass until the registry exists", opts: idsrule.Options{Checks: idsrule.Selection{Enable: []string{"not-a-check"}}}},
+		{name: "unknown check id", opts: idsrule.Options{Checks: idsrule.Selection{Enable: []string{"not-a-check"}}}, wantErr: `checks: unknown check id "not-a-check"`},
+		{name: "known check id", opts: idsrule.Options{Checks: idsrule.Selection{Enable: []string{"sid-duplicate"}, Disable: []string{"msg-prefix"}, Severity: map[string]idsrule.Severity{"rev-missing": idsrule.SeverityWarning}}}},
 		{name: "bad severity", opts: idsrule.Options{Checks: idsrule.Selection{Severity: map[string]idsrule.Severity{"x": "loud"}}}, wantErr: `checks: invalid severity "loud"`},
 	}
 	for _, tt := range tests {

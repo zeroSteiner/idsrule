@@ -1,0 +1,5 @@
+# lint: sid-index=crossfile
+alert tcp any any -> any any (msg:"a1"; sid:12900010; rev:1;)
+# expect: sid-duplicate error "duplicate sid 12900010"
+alert tcp any any -> any any (msg:"a1 again"; sid:12900010; rev:1;)
+alert tcp any any -> any any (msg:"a2"; sid:12900011; rev:1;)

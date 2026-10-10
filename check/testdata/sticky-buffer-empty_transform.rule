@@ -1,0 +1,8 @@
+# lint: dialect=suricata
+# expect: sticky-buffer-empty warning "sticky buffer "http.uri" has no content, pcre or buffer test after it"
+alert http any any -> any any (msg:"a"; http.uri; url_decode; sid:1; rev:1;)
+alert dns any any -> any any (msg:"b"; dns.query; bsize:>10; sid:2; rev:1;)
+alert http any any -> any any (msg:"c"; http.uri; url_decode; content:"x"; sid:3; rev:1;)
+# expect: sticky-buffer-empty warning "sticky buffer "http.uri" has no content, pcre or buffer test after it"
+alert http any any -> any any (msg:"d"; http.uri; to_lowercase; http.header; content:"x"; sid:4; rev:1;)
+alert http any any -> any any (msg:"e"; http.uri; absent; sid:5; rev:1;)

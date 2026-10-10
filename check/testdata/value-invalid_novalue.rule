@@ -1,0 +1,3 @@
+# lint: dialect=snort2
+# expect: value-invalid error "nocase takes no value"
+alert tcp any any -> any any (msg:"a"; content:"x"; nocase:yes; sid:1; rev:1;)

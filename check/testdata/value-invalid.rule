@@ -1,0 +1,8 @@
+# lint: dialect=snort2
+# expect: value-invalid error "sid: expected a digit"
+alert tcp any any -> any any (msg:"a"; sid:12abc; rev:1;)
+# expect: value-invalid error "content: empty content"
+alert tcp any any -> any any (msg:"b"; content:""; sid:2; rev:1;)
+# expect: value-invalid error "depth: expected a digit"
+alert tcp any any -> any any (msg:"c"; content:"x"; depth:1x; sid:3; rev:1;)
+alert tcp any any -> any any (msg:"d"; content:"x"; depth:5; fast_pattern; sid:4; rev:1;)

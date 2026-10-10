@@ -1,0 +1,4 @@
+# lint: dialect=snort2
+# expect: value-unescaped-quote warning "pcre value contains an unescaped"
+alert tcp any any -> any any (msg:"a"; pcre:"/foo"bar/"; sid:1; rev:1;)
+alert tcp any any -> any any (msg:"b"; pcre:"/foo\"bar/"; content:"a\"b"; sid:2; rev:1;)

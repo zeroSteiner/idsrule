@@ -1,0 +1,7 @@
+# lint: dialect=snort2
+alert tcp any any -> any any (msg:"a"; sid:12900001; rev:1;)
+# expect: sid-duplicate error "duplicate sid 12900001"
+alert tcp any any -> any any (msg:"b"; sid:12900001; rev:1;)
+alert tcp any any -> any any (msg:"c"; sid:12900002; rev:1;)
+# expect: sid-duplicate error "duplicate sid 12900001"
+alert tcp any any -> any any (msg:"d"; sid:12900001; rev:1;)

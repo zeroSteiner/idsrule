@@ -146,3 +146,49 @@ func TestSIDIndexConcurrent(t *testing.T) {
 		t.Errorf("Lookup(%d) after every goroutine forgot its file = %v, want nil", sid, got)
 	}
 }
+
+func TestSIDIndexReplace(t *testing.T) {
+	x := check.NewSIDIndex()
+	x.Add(1, check.SIDRef{File: "a", Line: 1, Column: 1})
+	x.Add(1, check.SIDRef{File: "b", Line: 1, Column: 1})
+	x.Add(2, check.SIDRef{File: "a", Line: 2, Column: 1})
+	x.Replace("a", map[uint64]check.SIDRef{1: {Line: 9, Column: 9}, 3: {Line: 3, Column: 1}})
+	if got := x.Lookup(1); len(got) != 2 || got[0].File != "b" || got[1] != (check.SIDRef{File: "a", Line: 9, Column: 9}) {
+		t.Errorf("sid 1 after Replace: %+v", got)
+	}
+	if got := x.Lookup(2); got != nil {
+		t.Errorf("sid 2 should be gone, got %+v", got)
+	}
+	if got := x.Lookup(3); len(got) != 1 || got[0].File != "a" {
+		t.Errorf("sid 3 after Replace: %+v", got)
+	}
+	var zero check.SIDIndex
+	zero.Replace("z", map[uint64]check.SIDRef{7: {Line: 1, Column: 1}})
+	if zero.Len() != 1 {
+		t.Errorf("zero value Replace: Len = %d", zero.Len())
+	}
+
+	// Concurrent re-indexing of one file must leave exactly one entry per sid.
+	var wg sync.WaitGroup
+	for i := 0; i < 16; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for j := 0; j < 50; j++ {
+				x.Replace("a", map[uint64]check.SIDRef{1: {Line: 1, Column: 1}, 4: {Line: 4, Column: 1}})
+			}
+		}()
+	}
+	wg.Wait()
+	for _, sid := range []uint64{1, 4} {
+		n := 0
+		for _, r := range x.Lookup(sid) {
+			if r.File == "a" {
+				n++
+			}
+		}
+		if n != 1 {
+			t.Errorf("sid %d: %d entries for file a after concurrent Replace, want 1", sid, n)
+		}
+	}
+}

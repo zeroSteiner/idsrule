@@ -1,0 +1,6 @@
+# lint: sid-min=12900000 sid-max=12999999 placeholder-below=12900000
+# expect: sid-out-of-range error "sid 13000000 is outside the policy range [12900000, 12999999]"
+alert tcp any any -> any any (msg:"high"; sid:13000000; rev:1;)
+alert tcp any any -> any any (msg:"low edge"; sid:12900000; rev:1;)
+alert tcp any any -> any any (msg:"high edge"; sid:12999999; rev:1;)
+alert tcp any any -> any any (msg:"placeholder"; sid:5; rev:1;)

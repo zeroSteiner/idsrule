@@ -1,0 +1,8 @@
+# lint: dialect=suricata
+# expect: header-invalid-protocol error ""47" is not a suricata protocol"
+alert 47 any any -> any any (msg:"a"; sid:1; rev:1;)
+# expect: header-invalid-protocol error ""gre" is not a suricata protocol"
+alert gre any any -> any any (msg:"b"; sid:2; rev:1;)
+alert TCP any any -> any any (msg:"c"; sid:3; rev:1;)
+alert HTTP any any -> any any (msg:"d"; sid:4; rev:1;)
+alert http any any -> any any (msg:"e"; sid:5; rev:1;)

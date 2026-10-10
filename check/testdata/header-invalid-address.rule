@@ -1,0 +1,10 @@
+# expect: header-invalid-address error "invalid address "10.0.0.256""
+alert tcp 10.0.0.256 any -> any any (msg:"a"; sid:1; rev:1;)
+# expect: header-invalid-address error "invalid address "foo""
+alert tcp any any -> foo any (msg:"b"; sid:2; rev:1;)
+# expect: header-invalid-address error "invalid address "80""
+alert tcp [10.0.0.0/8,80] any -> any any (msg:"c"; sid:3; rev:1;)
+alert tcp [10.0.0.0/8,!192.168.1.1,$HOME_NET,[::1,fe80::/10]] any -> !$EXTERNAL_NET any (msg:"d"; sid:4; rev:1;)
+# expect: syntax-unbalanced-bracket error
+alert tcp [10.0.0.1,10.0.0.2 any -> any any (msg:"e"; sid:5; rev:1;)
+alert tcp ANY any -> Any any (msg:"f"; sid:6; rev:1;)

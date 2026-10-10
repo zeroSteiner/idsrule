@@ -1,0 +1,3 @@
+# lint: severity=sid-missing:warning
+# expect: sid-missing warning "rule has no sid"
+alert tcp any any -> any any (msg:"no sid"; rev:1;)

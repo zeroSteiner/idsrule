@@ -149,6 +149,13 @@ const (
 	// RoleStickyBuffer selects the buffer the following matches apply to:
 	// file_data, http.uri.
 	RoleStickyBuffer
+	// RoleTransform rewrites the bytes of the active sticky buffer before
+	// the matches that follow: url_decode, to_lowercase, xor. Suricata
+	// only.
+	RoleTransform
+	// RoleBufferTest tests the active sticky buffer itself rather than
+	// matching a content in it: bsize, absent. Suricata only.
+	RoleBufferTest
 	// RoleFlow is a flow or state keyword: flow, flowbits, xbits.
 	RoleFlow
 	// RoleNonPayload matches packet headers: ttl, dsize, flags.
@@ -174,6 +181,10 @@ func (r Role) String() string {
 		return "modifier"
 	case RoleStickyBuffer:
 		return "sticky_buffer"
+	case RoleTransform:
+		return "transform"
+	case RoleBufferTest:
+		return "buffer_test"
 	case RoleFlow:
 		return "flow"
 	case RoleNonPayload:

@@ -92,12 +92,14 @@ func TestRoleString(t *testing.T) {
 		{dialect.RolePayload, "payload", true},
 		{dialect.RoleModifier, "modifier", true},
 		{dialect.RoleStickyBuffer, "sticky_buffer", true},
+		{dialect.RoleTransform, "transform", true},
+		{dialect.RoleBufferTest, "buffer_test", true},
 		{dialect.RoleFlow, "flow", true},
 		{dialect.RoleNonPayload, "non_payload", true},
 		{dialect.RolePostDetect, "post_detect", true},
 		{dialect.RoleAppLayer, "app_layer", true},
 		{dialect.RoleOther, "other", true},
-		{dialect.RoleOther + 1, "Role(9)", false},
+		{dialect.RoleOther + 1, "Role(11)", false},
 		{dialect.Role(255), "Role(255)", false},
 	}
 	for _, tt := range tests {
@@ -269,7 +271,9 @@ func TestIsAction(t *testing.T) {
 		{"rejectsrc", false, true, true},
 		{"nope", false, false, false},
 		{"", false, false, false},
-		{"Alert", false, false, false},
+		{"Alert", true, true, true},
+		{"ALERT", true, true, true},
+		{"SDROP", true, false, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.s, func(t *testing.T) {
@@ -336,7 +340,10 @@ func TestIsProtocol(t *testing.T) {
 		{"tls", false, true, true},
 		{"nope", false, false, false},
 		{"", false, false, false},
-		{"TCP", false, false, false},
+		{"TCP", true, true, true},
+		{"Http", false, true, true},
+		{"47", false, false, false},
+		{"6", false, false, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.s, func(t *testing.T) {

@@ -37,7 +37,9 @@ func (d Dialect) Protocols() []string {
 }
 
 // IsProtocol reports whether s is a protocol a rule header of d accepts;
-// for Unknown or an undefined dialect, of any dialect.
+// for Unknown or an undefined dialect, of any dialect. The comparison
+// ignores case, as both engines do; only the names in the tables are
+// protocols, so a protocol number is not one.
 func (d Dialect) IsProtocol(s string) bool {
-	return slices.Contains(d.Protocols(), s)
+	return containsFold(d.Protocols(), s)
 }

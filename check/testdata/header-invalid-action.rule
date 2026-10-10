@@ -1,0 +1,4 @@
+# lint: dialect=suricata
+# expect: header-invalid-action error ""sdrop" is not a suricata action"
+sdrop tcp any any -> any any (msg:"a"; sid:1; rev:1;)
+alert tcp any any -> any any (msg:"b"; sid:2; rev:1;)

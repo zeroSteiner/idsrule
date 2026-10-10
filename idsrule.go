@@ -88,13 +88,13 @@ func DefaultOptions() Options {
 	return Options{Policy: check.DefaultPolicy()}
 }
 
-// knownCheck reports whether a check id is registered. It stays nil until
-// the check registry lands, which makes Selection.Validate skip its
-// unknown-id test for now.
-var knownCheck func(id string) bool
+// knownCheck reports whether a check id is registered; Validate rejects
+// a Checks selection that names an id it does not know.
+var knownCheck = check.Known
 
 // Validate reports every inconsistency in o: an undefined Dialect, an
-// invalid Policy or an invalid Checks selection.
+// invalid Policy or an invalid Checks selection, which includes a check
+// id that is not registered (see [CheckIDs]).
 func (o Options) Validate() error {
 	var errs []error
 	if !o.Dialect.Valid() {

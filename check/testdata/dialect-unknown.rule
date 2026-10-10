@@ -1,0 +1,3 @@
+# lint: dialect=unknown checks=dialect-unknown,value-invalid,keyword-unknown
+# expect: dialect-unknown @1 warning "dialect unknown"
+alert tcp any any -> any any (msg:"a"; sid:1; rev:1;)

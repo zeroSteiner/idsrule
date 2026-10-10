@@ -34,6 +34,29 @@ func (x *SIDIndex) Add(sid uint64, ref SIDRef) {
 	x.refs[sid] = append(x.refs[sid], ref)
 }
 
+// Replace atomically forgets every entry recorded for file and records
+// refs, one per sid, each attributed to file. Re-indexing a file therefore
+// replaces its entries even when files are linted concurrently.
+func (x *SIDIndex) Replace(file string, refs map[uint64]SIDRef) {
+	x.mu.Lock()
+	defer x.mu.Unlock()
+	if x.refs == nil {
+		x.refs = make(map[uint64][]SIDRef)
+	}
+	for sid, rs := range x.refs {
+		kept := slices.DeleteFunc(rs, func(r SIDRef) bool { return r.File == file })
+		if len(kept) == 0 {
+			delete(x.refs, sid)
+			continue
+		}
+		x.refs[sid] = kept
+	}
+	for sid, ref := range refs {
+		ref.File = file
+		x.refs[sid] = append(x.refs[sid], ref)
+	}
+}
+
 // Lookup returns a copy of the references recorded for sid, in insertion
 // order, or nil if the sid is absent. Mutating the result does not affect
 // the index.

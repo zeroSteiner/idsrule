@@ -1,0 +1,120 @@
+package check
+
+import (
+	"errors"
+	"strings"
+
+	"github.com/zeroSteiner/idsrule/cst"
+	"github.com/zeroSteiner/idsrule/diag"
+	"github.com/zeroSteiner/idsrule/dialect"
+	"github.com/zeroSteiner/idsrule/value"
+)
+
+func init() {
+	Register(Check{
+		ID:           "value-invalid",
+		Severity:     diag.SeverityError,
+		NeedsDialect: true,
+		Doc:          "an option has a value it must not, lacks one it needs, or has one its keyword does not accept (sid 0 included: an error in Suricata, a warning in Snort 2)",
+		Run:          checkValueInvalid,
+	})
+	Register(Check{
+		ID:           "value-unescaped-quote",
+		Severity:     diag.SeverityWarning,
+		NeedsDialect: true,
+		Doc:          "a content or pcre value contains an odd number of unescaped double quotes",
+		Run:          checkValueUnescapedQuote,
+	})
+}
+
+func checkValueInvalid(ctx *Context) {
+	for _, r := range ctx.Tree.Rules() {
+		for _, o := range r.Options() {
+			k, ok := ctx.Keyword(o)
+			if !ok {
+				continue
+			}
+			switch {
+			case k.Value == dialect.NoValue && o.HasValue():
+				ctx.Report(o.ValueSpan(), "%s takes no value", k.Name)
+			case k.Value == dialect.Required && !o.HasValue():
+				ctx.Report(o.Keyword.Span(), "%s requires a value", k.Name)
+			case o.HasValue():
+				checkValue(ctx, o, k)
+			}
+		}
+	}
+}
+
+// checkValue decodes the value of o as k's kind and reports what is wrong
+// with it. An empty value is left to the parser's syntax-missing-value.
+func checkValue(ctx *Context, o *cst.Option, k dialect.Keyword) {
+	logical, _ := o.LogicalValue()
+	if logical == "" {
+		return
+	}
+	err := value.Validate(k.Kind, logical)
+	var ve *value.Error
+	switch {
+	case errors.As(err, &ve):
+		d := ctx.Report(ctx.ValueSpanAt(o, ve.Off), "%s: %s", k.Name, ve.Msg)
+		if k.Kind == dialect.KindMetadata && strings.Contains(ve.Msg, "empty") {
+			// Suricata skips an empty metadata entry rather than
+			// rejecting the rule.
+			d.Severity = diag.SeverityWarning
+		}
+		return
+	case err != nil:
+		ctx.Report(o.ValueSpan(), "%s: %v", k.Name, err)
+		return
+	}
+	switch k.Name {
+	case "threshold":
+		if t, err := value.ParseThreshold(logical); err == nil && !t.HasType {
+			ctx.Report(o.ValueSpan(), "threshold requires type")
+		}
+	case "sid":
+		// Suricata refuses to load a rule with sid 0; Snort 2.9 only
+		// reserves the low numbers.
+		if n, err := value.ParseUint(logical); err == nil && n == 0 {
+			d := ctx.Report(o.ValueSpan(), "sid must be at least 1")
+			if ctx.Dialect != dialect.Suricata {
+				d.Severity = diag.SeverityWarning
+			}
+		}
+	}
+}
+
+// unescapedQuotes counts the '"' bytes of s that are not the second byte
+// of a backslash escape pair.
+func unescapedQuotes(s string) int {
+	n := 0
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '\\':
+			i++
+		case '"':
+			n++
+		}
+	}
+	return n
+}
+
+func checkValueUnescapedQuote(ctx *Context) {
+	for _, r := range ctx.Tree.Rules() {
+		for _, o := range r.Options() {
+			k, ok := ctx.Keyword(o)
+			if !ok || !o.HasValue() || (k.Kind != dialect.KindContent && k.Kind != dialect.KindPCRE) {
+				continue
+			}
+			logical, _ := o.LogicalValue()
+			if value.Validate(k.Kind, logical) != nil {
+				// value-invalid reports it.
+				continue
+			}
+			if unescapedQuotes(logical)%2 == 1 {
+				ctx.Report(o.ValueSpan(), `%s value contains an unescaped '"'; a literal quote is written \"`, k.Name)
+			}
+		}
+	}
+}

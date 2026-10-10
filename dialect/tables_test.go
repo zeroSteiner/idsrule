@@ -57,6 +57,17 @@ func TestTableInvariants(t *testing.T) {
 					t.Error("sticky buffer is not Repeatable")
 				}
 			}
+			if k.Role == dialect.RoleTransform || k.Role == dialect.RoleBufferTest {
+				if k.Dialects != dialect.SetSuricata {
+					t.Errorf("%v keyword exists outside Suricata (%b)", k.Role, k.Dialects)
+				}
+				if !k.Repeatable {
+					t.Errorf("%v keyword is not Repeatable", k.Role)
+				}
+			}
+			if k.Role == dialect.RoleBufferTest && k.Value == dialect.NoValue {
+				t.Error("buffer test takes no value")
+			}
 			if k.Replaces != "" {
 				checkReplaces(t, k)
 			}
@@ -145,7 +156,7 @@ func TestTableContents(t *testing.T) {
 		"pcre":              {dialect.Both, 0, dialect.Required, dialect.KindPCRE, dialect.RolePayload, true, "", ""},
 		"nocase":            {dialect.Both, 0, dialect.NoValue, dialect.KindNone, dialect.RoleModifier, true, "", ""},
 		"depth":             {dialect.Both, 0, dialect.Required, dialect.KindIntOrVar, dialect.RoleModifier, true, "", ""},
-		"fast_pattern":      {dialect.Both, 0, dialect.Optional, dialect.KindFastPattern, dialect.RoleModifier, true, "", ""},
+		"fast_pattern":      {dialect.Both, 0, dialect.Optional, dialect.KindFastPattern, dialect.RoleModifier, false, "", ""},
 		"isdataat":          {dialect.Both, 0, dialect.Required, dialect.KindIsDataAt, dialect.RolePayload, true, "", ""},
 		"byte_test":         {dialect.Both, 0, dialect.Required, dialect.KindRaw, dialect.RolePayload, true, "", ""},
 		"base64_decode":     {dialect.Both, 0, dialect.Optional, dialect.KindBase64Decode, dialect.RolePayload, true, "", ""},
@@ -169,9 +180,15 @@ func TestTableContents(t *testing.T) {
 		"dcerpc.iface":      {dialect.SetSuricata, 0, dialect.Required, dialect.KindRaw, dialect.RoleAppLayer, false, "dce_iface", ""},
 		"dcerpc.stub_data":  {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RoleStickyBuffer, true, "dce_stub_data", ""},
 		"krb5_msg_type":     {dialect.SetSuricata, 0, dialect.Required, dialect.KindRaw, dialect.RoleAppLayer, false, "", ""},
-		"pcrexform":         {dialect.SetSuricata, 0, dialect.Required, dialect.KindRaw, dialect.RoleModifier, true, "", ""},
+		"pcrexform":         {dialect.SetSuricata, 0, dialect.Required, dialect.KindRaw, dialect.RoleTransform, true, "", ""},
+		"xor":               {dialect.SetSuricata, 0, dialect.Required, dialect.KindQuoted, dialect.RoleTransform, true, "", ""},
+		"from_base64":       {dialect.SetSuricata, 0, dialect.Optional, dialect.KindRaw, dialect.RoleTransform, true, "", ""},
+		"url_decode":        {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RoleTransform, true, "", ""},
+		"to_lowercase":      {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RoleTransform, true, "", ""},
 		"startswith":        {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RoleModifier, true, "", ""},
-		"bsize":             {dialect.SetSuricata, 0, dialect.Required, dialect.KindRelInt, dialect.RoleModifier, true, "", ""},
+		"endswith":          {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RoleModifier, true, "", ""},
+		"bsize":             {dialect.SetSuricata, 0, dialect.Required, dialect.KindRelInt, dialect.RoleBufferTest, true, "", ""},
+		"absent":            {dialect.SetSuricata, 0, dialect.Optional, dialect.KindRaw, dialect.RoleBufferTest, true, "", ""},
 		"noalert":           {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RolePostDetect, false, "", ""},
 		"mqtt.qos":          {dialect.SetSuricata, 0, dialect.Required, dialect.KindRaw, dialect.RoleAppLayer, false, "", ""},
 		"luajit":            {dialect.SetSuricata, dialect.SetSuricata, dialect.Required, dialect.KindRaw, dialect.RoleOther, true, "", "lua"},

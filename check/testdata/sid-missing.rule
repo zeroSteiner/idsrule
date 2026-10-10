@@ -1,0 +1,4 @@
+# lint: dialect=snort2
+# expect: sid-missing error "rule has no sid"
+alert tcp any any -> any any (msg:"no sid"; rev:1;)
+alert tcp any any -> any any (msg:"has sid"; sid:1; rev:1;)

@@ -1,0 +1,10 @@
+# expect: header-invalid-port error "invalid port "70000""
+alert tcp any 70000 -> any any (msg:"a"; sid:1; rev:1;)
+# expect: header-invalid-port error "invalid port "90:80""
+alert tcp any any -> any 90:80 (msg:"b"; sid:2; rev:1;)
+# expect: header-invalid-port error "invalid port "http""
+alert tcp any [80,http] -> any any (msg:"c"; sid:3; rev:1;)
+alert tcp any [80:90,!85,1024:,:1023,$HTTP_PORTS,any] -> any 443 (msg:"d"; sid:4; rev:1;)
+# expect: syntax-unbalanced-bracket error
+alert tcp any [80,443 -> any any (msg:"e"; sid:5; rev:1;)
+alert tcp any ANY -> any Any (msg:"f"; sid:6; rev:1;)

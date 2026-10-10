@@ -24,26 +24,27 @@ func appLayer(name string, kind ValueKind) Keyword {
 	return Keyword{Name: name, Dialects: SetSuricata, Value: Required, Kind: kind, Role: RoleAppLayer}
 }
 
-// transform returns a Suricata buffer transform: a modifier without a
-// value.
+// transform returns a Suricata buffer transform that takes no value.
 func transform(name string) Keyword {
-	return Keyword{Name: name, Dialects: SetSuricata, Value: NoValue, Kind: KindNone, Role: RoleModifier, Repeatable: true}
+	return Keyword{Name: name, Dialects: SetSuricata, Value: NoValue, Kind: KindNone, Role: RoleTransform, Repeatable: true}
 }
 
 // suricataKeywords are the keywords that exist only in Suricata, following
 // the Suricata 7 keyword index plus the few the brief names from later
 // versions. Values with grammars of their own are KindRaw.
 var suricataKeywords = []Keyword{
-	// Content modifiers and transforms.
+	// Content modifiers, buffer tests and transforms. A buffer test
+	// (bsize, absent) examines the active sticky buffer itself; a
+	// transform rewrites it before the matches that follow.
 	{Name: "startswith", Dialects: SetSuricata, Value: NoValue, Kind: KindNone, Role: RoleModifier, Repeatable: true},
 	{Name: "endswith", Dialects: SetSuricata, Value: NoValue, Kind: KindNone, Role: RoleModifier, Repeatable: true},
-	{Name: "bsize", Dialects: SetSuricata, Value: Required, Kind: KindRelInt, Role: RoleModifier, Repeatable: true},
+	{Name: "bsize", Dialects: SetSuricata, Value: Required, Kind: KindRelInt, Role: RoleBufferTest, Repeatable: true},
+	{Name: "absent", Dialects: SetSuricata, Value: Optional, Kind: KindRaw, Role: RoleBufferTest, Repeatable: true},
 	// pcrexform takes a quoted regular expression, whose escapes are
 	// PCRE's rather than a quoted string's.
-	{Name: "pcrexform", Dialects: SetSuricata, Value: Required, Kind: KindRaw, Role: RoleModifier, Repeatable: true},
-	{Name: "xor", Dialects: SetSuricata, Value: Required, Kind: KindQuoted, Role: RoleModifier, Repeatable: true},
-	{Name: "from_base64", Dialects: SetSuricata, Value: Optional, Kind: KindRaw, Role: RoleModifier, Repeatable: true},
-	{Name: "absent", Dialects: SetSuricata, Value: Optional, Kind: KindRaw, Role: RolePayload, Repeatable: true},
+	{Name: "pcrexform", Dialects: SetSuricata, Value: Required, Kind: KindRaw, Role: RoleTransform, Repeatable: true},
+	{Name: "xor", Dialects: SetSuricata, Value: Required, Kind: KindQuoted, Role: RoleTransform, Repeatable: true},
+	{Name: "from_base64", Dialects: SetSuricata, Value: Optional, Kind: KindRaw, Role: RoleTransform, Repeatable: true},
 	transform("dotprefix"),
 	transform("strip_whitespace"),
 	transform("compress_whitespace"),

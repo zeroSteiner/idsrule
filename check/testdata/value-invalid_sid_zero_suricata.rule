@@ -1,0 +1,4 @@
+# lint: dialect=suricata
+# expect: value-invalid error "sid must be at least 1"
+alert tcp any any -> any any (msg:"a"; sid:0; rev:1;)
+alert tcp any any -> any any (msg:"b"; sid:1; rev:1;)

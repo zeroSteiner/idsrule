@@ -1,0 +1,13 @@
+# lint: dialect=suricata checks=modifier-without-content,sticky-buffer-empty
+alert http any any -> any any (http.request_body; url_decode; content:"mail=test@oisf.net"; sid:1;)
+alert dns any any -> any any (dns.query; bsize:>10; sid:2;)
+# expect: modifier-without-content error ""url_decode" applies to a sticky buffer but none precedes it"
+alert http any any -> any any (url_decode; http.uri; content:"x"; sid:3;)
+# expect: modifier-without-content error ""bsize" applies to a sticky buffer but none precedes it"
+alert http any any -> any any (bsize:>10; http.uri; content:"x"; sid:4;)
+# expect: modifier-without-content error ""url_decode" applies to a sticky buffer but none precedes it"
+alert http any any -> any any (content:"x"; url_decode; sid:5;)
+# expect: modifier-without-content error ""startswith" modifies a content but none precedes it"
+alert http any any -> any any (http.uri; startswith; content:"x"; sid:6;)
+alert http any any -> any any (http.uri; content:"x"; startswith; to_lowercase; bsize:5; sid:7;)
+alert http any any -> any any (http.uri; absent; sid:8;)

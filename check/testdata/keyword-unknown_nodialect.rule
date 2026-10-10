@@ -1,0 +1,3 @@
+# lint: dialect=unknown
+# expect: keyword-unknown warning "unknown keyword "frobnicate""
+alert tcp any any -> any any (msg:"a"; frobnicate; sid:1; rev:1;)

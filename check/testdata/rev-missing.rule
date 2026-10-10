@@ -1,0 +1,4 @@
+# lint: require-rev=true
+# expect: rev-missing error "rule has no rev"
+alert tcp any any -> any any (msg:"no rev"; sid:1;)
+alert tcp any any -> any any (msg:"has rev"; sid:2; rev:1;)

@@ -26,7 +26,8 @@ var commonKeywords = []Keyword{
 	{Name: "offset", Dialects: Both, Value: Required, Kind: KindIntOrVar, Role: RoleModifier, Repeatable: true},
 	{Name: "distance", Dialects: Both, Value: Required, Kind: KindIntOrVar, Role: RoleModifier, Repeatable: true},
 	{Name: "within", Dialects: Both, Value: Required, Kind: KindIntOrVar, Role: RoleModifier, Repeatable: true},
-	{Name: "fast_pattern", Dialects: Both, Value: Optional, Kind: KindFastPattern, Role: RoleModifier, Repeatable: true},
+	// fast_pattern may be set once per rule; both engines reject a second.
+	{Name: "fast_pattern", Dialects: Both, Value: Optional, Kind: KindFastPattern, Role: RoleModifier},
 	{Name: "rawbytes", Dialects: Both, Value: NoValue, Kind: KindNone, Role: RoleModifier, Repeatable: true},
 	{Name: "isdataat", Dialects: Both, Value: Required, Kind: KindIsDataAt, Role: RolePayload, Repeatable: true},
 	{Name: "byte_test", Dialects: Both, Value: Required, Kind: KindRaw, Role: RolePayload, Repeatable: true},

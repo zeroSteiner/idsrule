@@ -1,0 +1,4 @@
+# lint: dialect=suricata
+# expect: keyword-wrong-dialect error ""http_raw_cookie" is a snort2 keyword with no suricata equivalent"
+alert tcp any any -> any any (msg:"a"; content:"x"; http_raw_cookie; sid:1; rev:1;)
+alert http any any -> any any (msg:"b"; http.method; content:"GET"; sid:2; rev:1;)

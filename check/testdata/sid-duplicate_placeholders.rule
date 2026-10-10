@@ -1,0 +1,3 @@
+# lint: placeholder-below=100 sid-index=placeholders
+alert tcp any any -> any any (msg:"a"; sid:1; rev:1;)
+alert tcp any any -> any any (msg:"b"; sid:1; rev:1;)

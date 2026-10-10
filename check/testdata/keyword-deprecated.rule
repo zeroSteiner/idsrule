@@ -1,0 +1,8 @@
+# lint: dialect=suricata
+# expect: keyword-deprecated warning ""http_uri" is deprecated in suricata; use "http.uri""
+alert http any any -> any any (msg:"a"; content:"/x"; http_uri; sid:1; rev:1;)
+# expect: keyword-deprecated warning ""http_method" is deprecated in suricata; use "http.method""
+alert http any any -> any any (msg:"b"; content:"GET"; http_method; sid:2; rev:1;)
+# expect: keyword-deprecated warning ""uricontent" is deprecated in suricata"
+alert http any any -> any any (msg:"c"; uricontent:"/x"; sid:3; rev:1;)
+alert http any any -> any any (msg:"d"; http.uri; content:"/x"; sid:4; rev:1;)

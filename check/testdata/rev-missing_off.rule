@@ -1,0 +1,2 @@
+# lint: require-rev=false
+alert tcp any any -> any any (msg:"no rev"; sid:1;)
