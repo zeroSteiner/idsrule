@@ -1,0 +1,94 @@
+(File 0:273
+  (Rule 0:273
+    (Header 0:45
+      (Word 0:5 "alert")
+      (Whitespace 5:6 " ")
+      (Word 6:10 "http")
+      (Whitespace 10:11 " ")
+      (Group 11:20
+        (Word 11:20 "$HOME_NET"))
+      (Whitespace 20:21 " ")
+      (Group 21:24
+        (Word 21:24 "any"))
+      (Whitespace 24:25 " ")
+      (Word 25:27 "->")
+      (Whitespace 27:28 " ")
+      (Group 28:41
+        (Word 28:41 "$EXTERNAL_NET"))
+      (Whitespace 41:42 " ")
+      (Group 42:45
+        (Word 42:45 "any")))
+    (Whitespace 45:46 " ")
+    (LParen 46:47 "(")
+    (Body 47:271
+      (Option 47:85
+        (Keyword 47:50 "msg")
+        (Colon 50:51 ":")
+        (Value 51:84 "\"EXAMPLE suricata sticky buffers\"")
+        (Semicolon 84:85 ";"))
+      (Whitespace 85:86 " ")
+      (Option 86:113
+        (Keyword 86:90 "flow")
+        (Colon 90:91 ":")
+        (Value 91:112 "established,to_server")
+        (Semicolon 112:113 ";"))
+      (Whitespace 113:114 " ")
+      (Option 114:126
+        (Keyword 114:125 "http.method")
+        (Semicolon 125:126 ";"))
+      (Whitespace 126:127 " ")
+      (Option 127:142
+        (Keyword 127:134 "content")
+        (Colon 134:135 ":")
+        (Value 135:141 "\"POST\"")
+        (Semicolon 141:142 ";"))
+      (Whitespace 142:143 " ")
+      (Option 143:152
+        (Keyword 143:151 "http.uri")
+        (Semicolon 151:152 ";"))
+      (Whitespace 152:153 " ")
+      (Option 153:170
+        (Keyword 153:160 "content")
+        (Colon 160:161 ":")
+        (Value 161:169 "\"/login\"")
+        (Semicolon 169:170 ";"))
+      (Whitespace 170:171 " ")
+      (Option 171:182
+        (Keyword 171:181 "startswith")
+        (Semicolon 181:182 ";"))
+      (Whitespace 182:183 " ")
+      (Option 183:199
+        (Keyword 183:198 "http.user_agent")
+        (Semicolon 198:199 ";"))
+      (Whitespace 199:200 " ")
+      (Option 200:215
+        (Keyword 200:207 "content")
+        (Colon 207:208 ":")
+        (Value 208:214 "\"curl\"")
+        (Semicolon 214:215 ";"))
+      (Whitespace 215:216 " ")
+      (Option 216:223
+        (Keyword 216:222 "nocase")
+        (Semicolon 222:223 ";"))
+      (Whitespace 223:224 " ")
+      (Option 224:257
+        (Keyword 224:233 "classtype")
+        (Colon 233:234 ":")
+        (Value 234:256 "web-application-attack")
+        (Semicolon 256:257 ";"))
+      (Whitespace 257:258 " ")
+      (Option 258:264
+        (Keyword 258:261 "sid")
+        (Colon 261:262 ":")
+        (Value 262:263 "1")
+        (Semicolon 263:264 ";"))
+      (Whitespace 264:265 " ")
+      (Option 265:271
+        (Keyword 265:268 "rev")
+        (Colon 268:269 ":")
+        (Value 269:270 "1")
+        (Semicolon 270:271 ";")))
+    (RParen 271:272 ")")
+    (Newline 272:273 "\n"))
+  (EOF 273:273 ""))
+

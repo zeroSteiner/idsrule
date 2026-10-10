@@ -1,0 +1,72 @@
+(File 0:87
+  (Rule 0:49
+    (Header 0:28
+      (Word 0:5 "alert")
+      (Whitespace 5:6 " ")
+      (Word 6:9 "tcp")
+      (Whitespace 9:10 " ")
+      (Group 10:13
+        (Word 10:13 "any"))
+      (Whitespace 13:14 " ")
+      (Group 14:17
+        (Word 14:17 "any"))
+      (Whitespace 17:18 " ")
+      (Word 18:20 "->")
+      (Whitespace 20:21 " ")
+      (Group 21:24
+        (Word 21:24 "any"))
+      (Whitespace 24:25 " ")
+      (Group 25:28
+        (Word 25:28 "any")))
+    (Whitespace 28:29 " ")
+    (LParen 29:30 "(")
+    (Body 30:47
+      (Option 30:36
+        (Keyword 30:33 "sid")
+        (Colon 33:34 ":")
+        (Value 34:35 "1")
+        (Semicolon 35:36 ";"))
+      (Whitespace 36:37 " ")
+      (Bad 37:40
+        (Bad 37:39 "@@")
+        (Semicolon 39:40 ";"))
+      (Whitespace 40:41 " ")
+      (Option 41:47
+        (Keyword 41:44 "rev")
+        (Colon 44:45 ":")
+        (Value 45:46 "1")
+        (Semicolon 46:47 ";")))
+    (RParen 47:48 ")")
+    (Newline 48:49 "\n"))
+  (Rule 49:87
+    (Header 49:77
+      (Word 49:54 "alert")
+      (Whitespace 54:55 " ")
+      (Word 55:58 "tcp")
+      (Whitespace 58:59 " ")
+      (Group 59:62
+        (Word 59:62 "any"))
+      (Whitespace 62:63 " ")
+      (Group 63:66
+        (Word 63:66 "any"))
+      (Whitespace 66:67 " ")
+      (Word 67:69 "->")
+      (Whitespace 69:70 " ")
+      (Group 70:73
+        (Word 70:73 "any"))
+      (Whitespace 73:74 " ")
+      (Group 74:77
+        (Word 74:77 "any")))
+    (Whitespace 77:78 " ")
+    (LParen 78:79 "(")
+    (Body 79:85
+      (Option 79:85
+        (Keyword 79:82 "sid")
+        (Colon 82:83 ":")
+        (Value 83:84 "2")
+        (Semicolon 84:85 ";")))
+    (RParen 85:86 ")")
+    (Newline 86:87 "\n"))
+  (EOF 87:87 ""))
+
+diag syntax-bad-option 37:39 unexpected "@@" in rule body

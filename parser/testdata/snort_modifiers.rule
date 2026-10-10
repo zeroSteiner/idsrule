@@ -1,0 +1,1 @@
+alert tcp $HOME_NET any -> $EXTERNAL_NET $HTTP_PORTS (msg:"EXAMPLE snort modifiers"; flow:established,to_server; content:"POST"; http_method; nocase; content:"/login"; http_uri; depth:6; pcre:"/^\/login\/?$/U"; classtype:web-application-attack; sid:1; rev:1;)

@@ -1,0 +1,160 @@
+(File 0:315
+  (Rule 0:94
+    (Header 0:58
+      (Word 0:5 "alert")
+      (Whitespace 5:6 " ")
+      (Word 6:9 "tcp")
+      (Whitespace 9:10 " ")
+      (Group 10:19
+        (Word 10:19 "$HOME_NET"))
+      (Whitespace 19:20 " ")
+      (Group 20:23
+        (Word 20:23 "any"))
+      (Whitespace 23:24 " ")
+      (Word 24:26 "->")
+      (Whitespace 26:27 " ")
+      (Group 27:40
+        (Word 27:40 "$EXTERNAL_NET"))
+      (Whitespace 40:41 " ")
+      (Group 41:58
+        (List 41:58
+          (LBracket 41:42 "[")
+          (Group 42:47
+            (Word 42:47 "80:90"))
+          (Comma 47:48 ",")
+          (Group 48:51
+            (Bang 48:49 "!")
+            (Word 49:51 "85"))
+          (Comma 51:52 ",")
+          (Group 52:57
+            (Word 52:57 "1024:"))
+          (RBracket 57:58 "]"))))
+    (Whitespace 58:59 " ")
+    (LParen 59:60 "(")
+    (Body 60:92
+      (Option 60:85
+        (Keyword 60:63 "msg")
+        (Colon 63:64 ":")
+        (Value 64:84 "\"vars and port list\"")
+        (Semicolon 84:85 ";"))
+      (Whitespace 85:86 " ")
+      (Option 86:92
+        (Keyword 86:89 "sid")
+        (Colon 89:90 ":")
+        (Value 90:91 "1")
+        (Semicolon 91:92 ";")))
+    (RParen 92:93 ")")
+    (Newline 93:94 "\n"))
+  (Rule 94:225
+    (Header 94:183
+      (Word 94:99 "alert")
+      (Whitespace 99:100 " ")
+      (Word 100:102 "ip")
+      (Whitespace 102:103 " ")
+      (Group 103:128
+        (Bang 103:104 "!")
+        (List 104:128
+          (LBracket 104:105 "[")
+          (Group 105:115
+            (Word 105:115 "10.0.0.0/8"))
+          (Comma 115:116 ",")
+          (Group 116:127
+            (Word 116:127 "10.1.0.0/16"))
+          (RBracket 127:128 "]")))
+      (Whitespace 128:129 " ")
+      (Group 129:132
+        (Word 129:132 "any"))
+      (Whitespace 132:133 " ")
+      (Word 133:135 "<>")
+      (Whitespace 135:136 " ")
+      (Group 136:179
+        (List 136:179
+          (LBracket 136:137 "[")
+          (Group 137:146
+            (Word 137:146 "$HOME_NET"))
+          (Comma 146:147 ",")
+          (Group 147:178
+            (List 147:178
+              (LBracket 147:148 "[")
+              (Group 148:162
+                (Word 148:162 "192.168.0.0/16"))
+              (Comma 162:163 ",")
+              (Whitespace 163:164 " ")
+              (Group 164:177
+                (Word 164:177 "172.16.0.0/12"))
+              (RBracket 177:178 "]")))
+          (RBracket 178:179 "]")))
+      (Whitespace 179:180 " ")
+      (Group 180:183
+        (Word 180:183 "any")))
+    (Whitespace 183:184 " ")
+    (LParen 184:185 "(")
+    (Body 185:223
+      (Option 185:216
+        (Keyword 185:188 "msg")
+        (Colon 188:189 ":")
+        (Value 189:215 "\"negated and nested lists\"")
+        (Semicolon 215:216 ";"))
+      (Whitespace 216:217 " ")
+      (Option 217:223
+        (Keyword 217:220 "sid")
+        (Colon 220:221 ":")
+        (Value 221:222 "2")
+        (Semicolon 222:223 ";")))
+    (RParen 223:224 ")")
+    (Newline 224:225 "\n"))
+  (Rule 225:315
+    (Header 225:278
+      (Word 225:230 "alert")
+      (Whitespace 230:231 " ")
+      (Word 231:234 "tcp")
+      (Whitespace 234:235 " ")
+      (Group 235:257
+        (List 235:257
+          (LBracket 235:236 "[")
+          (Group 236:245
+            (Word 236:245 "$HOME_NET"))
+          (Comma 245:246 ",")
+          (Whitespace 246:247 " ")
+          (Group 247:256
+            (Bang 247:248 "!")
+            (Word 248:256 "10.0.0.5"))
+          (RBracket 256:257 "]")))
+      (Whitespace 257:258 " ")
+      (Group 258:267
+        (List 258:267
+          (LBracket 258:259 "[")
+          (Group 259:261
+            (Word 259:261 "80"))
+          (Comma 261:262 ",")
+          (Whitespace 262:263 " ")
+          (Group 263:266
+            (Word 263:266 "443"))
+          (RBracket 266:267 "]")))
+      (Whitespace 267:268 " ")
+      (Word 268:270 "->")
+      (Whitespace 270:271 " ")
+      (Group 271:274
+        (Word 271:274 "any"))
+      (Whitespace 274:275 " ")
+      (Group 275:278
+        (Bang 275:276 "!")
+        (Word 276:278 "53")))
+    (Whitespace 278:279 " ")
+    (LParen 279:280 "(")
+    (Body 280:313
+      (Option 280:306
+        (Keyword 280:283 "msg")
+        (Colon 283:284 ":")
+        (Value 284:305 "\"spaces after commas\"")
+        (Semicolon 305:306 ";"))
+      (Whitespace 306:307 " ")
+      (Option 307:313
+        (Keyword 307:310 "sid")
+        (Colon 310:311 ":")
+        (Value 311:312 "3")
+        (Semicolon 312:313 ";")))
+    (RParen 313:314 ")")
+    (Newline 314:315 "\n"))
+  (EOF 315:315 ""))
+

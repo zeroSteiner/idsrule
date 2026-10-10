@@ -1,0 +1,92 @@
+(File 0:260
+  (Rule 0:260
+    (Header 0:52
+      (Word 0:5 "alert")
+      (Whitespace 5:6 " ")
+      (Word 6:9 "tcp")
+      (Whitespace 9:10 " ")
+      (Group 10:19
+        (Word 10:19 "$HOME_NET"))
+      (Whitespace 19:20 " ")
+      (Group 20:23
+        (Word 20:23 "any"))
+      (Whitespace 23:24 " ")
+      (Word 24:26 "->")
+      (Whitespace 26:27 " ")
+      (Group 27:40
+        (Word 27:40 "$EXTERNAL_NET"))
+      (Whitespace 40:41 " ")
+      (Group 41:52
+        (Word 41:52 "$HTTP_PORTS")))
+    (Whitespace 52:53 " ")
+    (LParen 53:54 "(")
+    (Body 54:258
+      (Option 54:84
+        (Keyword 54:57 "msg")
+        (Colon 57:58 ":")
+        (Value 58:83 "\"EXAMPLE snort modifiers\"")
+        (Semicolon 83:84 ";"))
+      (Whitespace 84:85 " ")
+      (Option 85:112
+        (Keyword 85:89 "flow")
+        (Colon 89:90 ":")
+        (Value 90:111 "established,to_server")
+        (Semicolon 111:112 ";"))
+      (Whitespace 112:113 " ")
+      (Option 113:128
+        (Keyword 113:120 "content")
+        (Colon 120:121 ":")
+        (Value 121:127 "\"POST\"")
+        (Semicolon 127:128 ";"))
+      (Whitespace 128:129 " ")
+      (Option 129:141
+        (Keyword 129:140 "http_method")
+        (Semicolon 140:141 ";"))
+      (Whitespace 141:142 " ")
+      (Option 142:149
+        (Keyword 142:148 "nocase")
+        (Semicolon 148:149 ";"))
+      (Whitespace 149:150 " ")
+      (Option 150:167
+        (Keyword 150:157 "content")
+        (Colon 157:158 ":")
+        (Value 158:166 "\"/login\"")
+        (Semicolon 166:167 ";"))
+      (Whitespace 167:168 " ")
+      (Option 168:177
+        (Keyword 168:176 "http_uri")
+        (Semicolon 176:177 ";"))
+      (Whitespace 177:178 " ")
+      (Option 178:186
+        (Keyword 178:183 "depth")
+        (Colon 183:184 ":")
+        (Value 184:185 "6")
+        (Semicolon 185:186 ";"))
+      (Whitespace 186:187 " ")
+      (Option 187:210
+        (Keyword 187:191 "pcre")
+        (Colon 191:192 ":")
+        (Value 192:209 "\"/^\\/login\\/?$/U\"")
+        (Semicolon 209:210 ";"))
+      (Whitespace 210:211 " ")
+      (Option 211:244
+        (Keyword 211:220 "classtype")
+        (Colon 220:221 ":")
+        (Value 221:243 "web-application-attack")
+        (Semicolon 243:244 ";"))
+      (Whitespace 244:245 " ")
+      (Option 245:251
+        (Keyword 245:248 "sid")
+        (Colon 248:249 ":")
+        (Value 249:250 "1")
+        (Semicolon 250:251 ";"))
+      (Whitespace 251:252 " ")
+      (Option 252:258
+        (Keyword 252:255 "rev")
+        (Colon 255:256 ":")
+        (Value 256:257 "1")
+        (Semicolon 257:258 ";")))
+    (RParen 258:259 ")")
+    (Newline 259:260 "\n"))
+  (EOF 260:260 ""))
+

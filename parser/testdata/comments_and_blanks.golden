@@ -1,0 +1,90 @@
+(File 0:179
+  (Comment 0:32
+    (Comment 0:31 "# Rules for the example service")
+    (Newline 31:32 "\n"))
+  (Comment 32:54
+    (Comment 32:53 "# Second comment line")
+    (Newline 53:54 "\n"))
+  (BlankLine 54:55
+    (Newline 54:55 "\n"))
+  (Rule 55:104
+    (Header 55:83
+      (Word 55:60 "alert")
+      (Whitespace 60:61 " ")
+      (Word 61:64 "tcp")
+      (Whitespace 64:65 " ")
+      (Group 65:68
+        (Word 65:68 "any"))
+      (Whitespace 68:69 " ")
+      (Group 69:72
+        (Word 69:72 "any"))
+      (Whitespace 72:73 " ")
+      (Word 73:75 "->")
+      (Whitespace 75:76 " ")
+      (Group 76:79
+        (Word 76:79 "any"))
+      (Whitespace 79:80 " ")
+      (Group 80:83
+        (Word 80:83 "any")))
+    (Whitespace 83:84 " ")
+    (LParen 84:85 "(")
+    (Body 85:102
+      (Option 85:95
+        (Keyword 85:88 "msg")
+        (Colon 88:89 ":")
+        (Value 89:94 "\"one\"")
+        (Semicolon 94:95 ";"))
+      (Whitespace 95:96 " ")
+      (Option 96:102
+        (Keyword 96:99 "sid")
+        (Colon 99:100 ":")
+        (Value 100:101 "1")
+        (Semicolon 101:102 ";")))
+    (RParen 102:103 ")")
+    (Newline 103:104 "\n"))
+  (BlankLine 104:108
+    (Whitespace 104:107 "   ")
+    (Newline 107:108 "\n"))
+  (Comment 108:129
+    (Whitespace 108:110 "  ")
+    (Comment 110:128 "# indented comment")
+    (Newline 128:129 "\n"))
+  (Rule 129:178
+    (Header 129:157
+      (Word 129:134 "alert")
+      (Whitespace 134:135 " ")
+      (Word 135:138 "tcp")
+      (Whitespace 138:139 " ")
+      (Group 139:142
+        (Word 139:142 "any"))
+      (Whitespace 142:143 " ")
+      (Group 143:146
+        (Word 143:146 "any"))
+      (Whitespace 146:147 " ")
+      (Word 147:149 "->")
+      (Whitespace 149:150 " ")
+      (Group 150:153
+        (Word 150:153 "any"))
+      (Whitespace 153:154 " ")
+      (Group 154:157
+        (Word 154:157 "any")))
+    (Whitespace 157:158 " ")
+    (LParen 158:159 "(")
+    (Body 159:176
+      (Option 159:169
+        (Keyword 159:162 "msg")
+        (Colon 162:163 ":")
+        (Value 163:168 "\"two\"")
+        (Semicolon 168:169 ";"))
+      (Whitespace 169:170 " ")
+      (Option 170:176
+        (Keyword 170:173 "sid")
+        (Colon 173:174 ":")
+        (Value 174:175 "2")
+        (Semicolon 175:176 ";")))
+    (RParen 176:177 ")")
+    (Newline 177:178 "\n"))
+  (BlankLine 178:179
+    (Newline 178:179 "\n"))
+  (EOF 179:179 ""))
+

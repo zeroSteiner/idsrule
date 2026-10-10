@@ -1,0 +1,113 @@
+(File 0:408
+  (Rule 0:408
+    (Header 0:28
+      (Word 0:5 "alert")
+      (Whitespace 5:6 " ")
+      (Word 6:9 "tcp")
+      (Whitespace 9:10 " ")
+      (Group 10:13
+        (Word 10:13 "any"))
+      (Whitespace 13:14 " ")
+      (Group 14:17
+        (Word 14:17 "any"))
+      (Whitespace 17:18 " ")
+      (Word 18:20 "->")
+      (Whitespace 20:21 " ")
+      (Group 21:24
+        (Word 21:24 "any"))
+      (Whitespace 24:25 " ")
+      (Group 25:28
+        (Word 25:28 "any")))
+    (Whitespace 28:29 " ")
+    (LParen 29:30 "(")
+    (Body 30:406
+      (Whitespace 30:31 " ")
+      (LineContinuation 31:33 "\\\n")
+      (Option 33:98
+        (Keyword 33:36 "msg")
+        (Colon 36:37 ":")
+        (Value 37:97 "\"EXAMPLE Langflow Custom Component Eval Injection - Attempt\"")
+        (Semicolon 97:98 ";"))
+      (Whitespace 98:99 " ")
+      (LineContinuation 99:101 "\\\n")
+      (Option 101:128
+        (Keyword 101:105 "flow")
+        (Colon 105:106 ":")
+        (Value 106:127 "to_server,established")
+        (Semicolon 127:128 ";"))
+      (Whitespace 128:129 " ")
+      (LineContinuation 129:131 "\\\n")
+      (Option 131:146
+        (Keyword 131:138 "content")
+        (Colon 138:139 ":")
+        (Value 139:145 "\"POST\"")
+        (Semicolon 145:146 ";"))
+      (Whitespace 146:147 " ")
+      (Option 147:159
+        (Keyword 147:158 "http_method")
+        (Semicolon 158:159 ";"))
+      (Whitespace 159:160 " ")
+      (LineContinuation 160:162 "\\\n")
+      (Option 162:197
+        (Keyword 162:169 "content")
+        (Colon 169:170 ":")
+        (Value 170:196 "\"/api/v1/custom_component\"")
+        (Semicolon 196:197 ";"))
+      (Whitespace 197:198 " ")
+      (Option 198:205
+        (Keyword 198:204 "nocase")
+        (Semicolon 204:205 ";"))
+      (Whitespace 205:206 " ")
+      (Option 206:215
+        (Keyword 206:214 "http_uri")
+        (Semicolon 214:215 ";"))
+      (Whitespace 215:216 " ")
+      (LineContinuation 216:218 "\\\n")
+      (Option 218:240
+        (Keyword 218:225 "content")
+        (Colon 225:226 ":")
+        (Value 226:239 "\"__import__(\"")
+        (Semicolon 239:240 ";"))
+      (Whitespace 240:241 " ")
+      (Option 241:258
+        (Keyword 241:257 "http_client_body")
+        (Semicolon 257:258 ";"))
+      (Whitespace 258:259 " ")
+      (LineContinuation 259:261 "\\\n")
+      (Option 261:289
+        (Keyword 261:270 "reference")
+        (Colon 270:271 ":")
+        (Value 271:288 "cve,CVE-2026-0769")
+        (Semicolon 288:289 ";"))
+      (Whitespace 289:290 " ")
+      (LineContinuation 290:292 "\\\n")
+      (Option 292:325
+        (Keyword 292:301 "classtype")
+        (Colon 301:302 ":")
+        (Value 302:324 "web-application-attack")
+        (Semicolon 324:325 ";"))
+      (Whitespace 325:326 " ")
+      (LineContinuation 326:328 "\\\n")
+      (Option 328:341
+        (Keyword 328:331 "sid")
+        (Colon 331:332 ":")
+        (Value 332:340 "12900067")
+        (Semicolon 340:341 ";"))
+      (Whitespace 341:342 " ")
+      (Option 342:348
+        (Keyword 342:345 "rev")
+        (Colon 345:346 ":")
+        (Value 346:347 "1")
+        (Semicolon 347:348 ";"))
+      (Whitespace 348:349 " ")
+      (LineContinuation 349:351 "\\\n")
+      (Option 351:406
+        (Keyword 351:359 "metadata")
+        (Colon 359:360 ":")
+        (Whitespace 360:361 " ")
+        (Value 361:405 "deployment Datacenter, deployment SSLDecrypt")
+        (Semicolon 405:406 ";")))
+    (RParen 406:407 ")")
+    (Newline 407:408 "\n"))
+  (EOF 408:408 ""))
+

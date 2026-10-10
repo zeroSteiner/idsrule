@@ -1,0 +1,92 @@
+(File 0:308
+  (Rule 0:308
+    (Header 0:28
+      (Word 0:5 "alert")
+      (Whitespace 5:6 " ")
+      (Word 6:9 "tcp")
+      (Whitespace 9:10 " ")
+      (Group 10:13
+        (Word 10:13 "any"))
+      (Whitespace 13:14 " ")
+      (Group 14:17
+        (Word 14:17 "any"))
+      (Whitespace 17:18 " ")
+      (Word 18:20 "->")
+      (Whitespace 20:21 " ")
+      (Group 21:24
+        (Word 21:24 "any"))
+      (Whitespace 24:25 " ")
+      (Group 25:28
+        (Word 25:28 "any")))
+    (Whitespace 28:29 " ")
+    (LParen 29:30 "(")
+    (Body 30:306
+      (Whitespace 30:31 " ")
+      (LineContinuation 31:33 "\\\n")
+      (Whitespace 33:37 "    ")
+      (Option 37:93
+        (Keyword 37:40 "msg")
+        (Colon 40:41 ":")
+        (Value 41:92 "\"EXAMPLE Splunk PostgreSQL Recovery Backup Attempt\"")
+        (Semicolon 92:93 ";"))
+      (Whitespace 93:94 " ")
+      (LineContinuation 94:96 "\\\n")
+      (Whitespace 96:100 "    ")
+      (Option 100:127
+        (Keyword 100:104 "flow")
+        (Colon 104:105 ":")
+        (Value 105:126 "to_server,established")
+        (Semicolon 126:127 ";"))
+      (Whitespace 127:128 " ")
+      (LineContinuation 128:130 "\\\n")
+      (Whitespace 130:134 "    ")
+      (Option 134:149
+        (Keyword 134:141 "content")
+        (Colon 141:142 ":")
+        (Value 142:148 "\"POST\"")
+        (Semicolon 148:149 ";"))
+      (Whitespace 149:150 " ")
+      (Option 150:162
+        (Keyword 150:161 "http_method")
+        (Semicolon 161:162 ";"))
+      (Whitespace 162:163 " ")
+      (LineContinuation 163:165 "\\\n")
+      (Whitespace 165:169 "    ")
+      (Option 169:205
+        (Keyword 169:176 "content")
+        (Colon 176:177 ":")
+        (Value 177:204 "\"/postgres/recovery/backup\"")
+        (Semicolon 204:205 ";"))
+      (Whitespace 205:206 " ")
+      (Option 206:215
+        (Keyword 206:214 "http_uri")
+        (Semicolon 214:215 ";"))
+      (Whitespace 215:216 " ")
+      (LineContinuation 216:218 "\\\n")
+      (Whitespace 218:222 "    ")
+      (Option 222:234
+        (Keyword 222:225 "sid")
+        (Colon 225:226 ":")
+        (Value 226:233 "1000005")
+        (Semicolon 233:234 ";"))
+      (Whitespace 234:235 " ")
+      (Option 235:241
+        (Keyword 235:238 "rev")
+        (Colon 238:239 ":")
+        (Value 239:240 "1")
+        (Semicolon 240:241 ";"))
+      (Whitespace 241:242 " ")
+      (LineContinuation 242:244 "\\\n")
+      (Whitespace 244:248 "    ")
+      (Option 248:303
+        (Keyword 248:256 "metadata")
+        (Colon 256:257 ":")
+        (Whitespace 257:258 " ")
+        (Value 258:302 "deployment Datacenter, deployment SSLDecrypt")
+        (Semicolon 302:303 ";"))
+      (Whitespace 303:304 " ")
+      (LineContinuation 304:306 "\\\n"))
+    (RParen 306:307 ")")
+    (Newline 307:308 "\n"))
+  (EOF 308:308 ""))
+

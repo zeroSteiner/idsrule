@@ -1,0 +1,84 @@
+(File 0:134
+  (Rule 0:51
+    (Header 0:28
+      (Word 0:5 "alert")
+      (Whitespace 5:6 " ")
+      (Word 6:9 "tcp")
+      (Whitespace 9:10 " ")
+      (Group 10:13
+        (Word 10:13 "any"))
+      (Whitespace 13:14 " ")
+      (Group 14:17
+        (Word 14:17 "any"))
+      (Whitespace 17:18 " ")
+      (Word 18:20 "->")
+      (Whitespace 20:21 " ")
+      (Group 21:24
+        (Word 21:24 "any"))
+      (Whitespace 24:25 " ")
+      (Group 25:28
+        (Word 25:28 "any")))
+    (Whitespace 28:29 " ")
+    (LParen 29:30 "(")
+    (Body 30:48
+      (Option 30:41
+        (Keyword 30:33 "msg")
+        (Colon 33:34 ":")
+        (Value 34:40 "\"crlf\"")
+        (Semicolon 40:41 ";"))
+      (Whitespace 41:42 " ")
+      (Option 42:48
+        (Keyword 42:45 "sid")
+        (Colon 45:46 ":")
+        (Value 46:47 "1")
+        (Semicolon 47:48 ";")))
+    (RParen 48:49 ")")
+    (Newline 49:51 "\r\n"))
+  (Rule 51:134
+    (Header 51:79
+      (Word 51:56 "alert")
+      (Whitespace 56:57 " ")
+      (Word 57:60 "tcp")
+      (Whitespace 60:61 " ")
+      (Group 61:64
+        (Word 61:64 "any"))
+      (Whitespace 64:65 " ")
+      (Group 65:68
+        (Word 65:68 "any"))
+      (Whitespace 68:69 " ")
+      (Word 69:71 "->")
+      (Whitespace 71:72 " ")
+      (Group 72:75
+        (Word 72:75 "any"))
+      (Whitespace 75:76 " ")
+      (Group 76:79
+        (Word 76:79 "any")))
+    (Whitespace 79:80 " ")
+    (LParen 80:81 "(")
+    (Body 81:131
+      (Whitespace 81:82 " ")
+      (LineContinuation 82:85 "\\\r\n")
+      (Whitespace 85:89 "    ")
+      (Option 89:110
+        (Keyword 89:92 "msg")
+        (Colon 92:93 ":")
+        (Value 93:109 "\"crlf multiline\"")
+        (Semicolon 109:110 ";"))
+      (Whitespace 110:111 " ")
+      (LineContinuation 111:114 "\\\r\n")
+      (Whitespace 114:118 "    ")
+      (Option 118:124
+        (Keyword 118:121 "sid")
+        (Colon 121:122 ":")
+        (Value 122:123 "2")
+        (Semicolon 123:124 ";"))
+      (Whitespace 124:125 " ")
+      (Option 125:131
+        (Keyword 125:128 "rev")
+        (Colon 128:129 ":")
+        (Value 129:130 "1")
+        (Semicolon 130:131 ";")))
+    (RParen 131:132 ")")
+    (Newline 132:134 "\r\n"))
+  (EOF 134:134 ""))
+

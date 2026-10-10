@@ -1,0 +1,65 @@
+(File 0:81
+  (Rule 0:37
+    (Header 0:28
+      (Word 0:5 "alert")
+      (Whitespace 5:6 " ")
+      (Word 6:9 "tcp")
+      (Whitespace 9:10 " ")
+      (Group 10:13
+        (Word 10:13 "any"))
+      (Whitespace 13:14 " ")
+      (Group 14:17
+        (Word 14:17 "any"))
+      (Whitespace 17:18 " ")
+      (Word 18:20 "->")
+      (Whitespace 20:21 " ")
+      (Group 21:24
+        (Word 21:24 "any"))
+      (Whitespace 24:25 " ")
+      (Group 25:28
+        (Word 25:28 "any")))
+    (Whitespace 28:29 " ")
+    (LParen 29:30 "(")
+    (Body 30:36
+      (Option 30:36
+        (Keyword 30:33 "sid")
+        (Colon 33:34 ":")
+        (Value 34:35 "1")
+        (Semicolon 35:36 ";")))
+    (RParen 36:37 ")"))
+  (Bad 37:43
+    (Whitespace 37:38 " ")
+    (Word 38:42 "junk")
+    (Newline 42:43 "\n"))
+  (Rule 43:81
+    (Header 43:71
+      (Word 43:48 "alert")
+      (Whitespace 48:49 " ")
+      (Word 49:52 "tcp")
+      (Whitespace 52:53 " ")
+      (Group 53:56
+        (Word 53:56 "any"))
+      (Whitespace 56:57 " ")
+      (Group 57:60
+        (Word 57:60 "any"))
+      (Whitespace 60:61 " ")
+      (Word 61:63 "->")
+      (Whitespace 63:64 " ")
+      (Group 64:67
+        (Word 64:67 "any"))
+      (Whitespace 67:68 " ")
+      (Group 68:71
+        (Word 68:71 "any")))
+    (Whitespace 71:72 " ")
+    (LParen 72:73 "(")
+    (Body 73:79
+      (Option 73:79
+        (Keyword 73:76 "sid")
+        (Colon 76:77 ":")
+        (Value 77:78 "2")
+        (Semicolon 78:79 ";")))
+    (RParen 79:80 ")")
+    (Newline 80:81 "\n"))
+  (EOF 81:81 ""))
+
+diag syntax-trailing-text 38:42 unexpected "junk" after ')'

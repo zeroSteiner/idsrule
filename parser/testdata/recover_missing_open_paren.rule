@@ -1,0 +1,2 @@
+alert tcp any any -> any any
+alert tcp any any -> any any (sid:2;)

@@ -1,0 +1,9 @@
+\
+alert tcp any any -> any any (msg:"leading continuation"; sid:1;) \
+alert tcp any any -> any any (msg:"joined to the previous line"; sid:2;) \
+
+\
+
+  \
+  # continued comment
+alert tcp any any -> any any (msg:"after a continued blank line and comment"; sid:3;)

@@ -1,0 +1,93 @@
+(File 0:254
+  (Rule 0:254
+    (Header 0:29
+      (Word 0:5 "alert")
+      (Whitespace 5:6 " ")
+      (Word 6:10 "http")
+      (Whitespace 10:11 " ")
+      (Group 11:14
+        (Word 11:14 "any"))
+      (Whitespace 14:15 " ")
+      (Group 15:18
+        (Word 15:18 "any"))
+      (Whitespace 18:19 " ")
+      (Word 19:21 "->")
+      (Whitespace 21:22 " ")
+      (Group 22:25
+        (Word 22:25 "any"))
+      (Whitespace 25:26 " ")
+      (Group 26:29
+        (Word 26:29 "any")))
+    (Whitespace 29:30 " ")
+    (LParen 30:31 "(")
+    (Body 31:252
+      (Whitespace 31:32 " ")
+      (LineContinuation 32:34 "\\\n")
+      (Whitespace 34:36 "  ")
+      (Option 36:75
+        (Keyword 36:39 "msg")
+        (Colon 39:40 ":")
+        (Value 40:74 "\"EXAMPLE HTTP POST to admin login\"")
+        (Semicolon 74:75 ";"))
+      (Whitespace 75:76 " ")
+      (LineContinuation 76:78 "\\\n")
+      (Whitespace 78:80 "  ")
+      (Option 80:107
+        (Keyword 80:84 "flow")
+        (Colon 84:85 ":")
+        (Value 85:106 "established,to_server")
+        (Semicolon 106:107 ";"))
+      (Whitespace 107:108 " ")
+      (LineContinuation 108:110 "\\\n")
+      (Whitespace 110:112 "  ")
+      (Option 112:124
+        (Keyword 112:123 "http.method")
+        (Semicolon 123:124 ";"))
+      (Whitespace 124:125 " ")
+      (Option 125:140
+        (Keyword 125:132 "content")
+        (Colon 132:133 ":")
+        (Value 133:139 "\"POST\"")
+        (Semicolon 139:140 ";"))
+      (Whitespace 140:141 " ")
+      (LineContinuation 141:143 "\\\n")
+      (Whitespace 143:145 "  ")
+      (Option 145:154
+        (Keyword 145:153 "http.uri")
+        (Semicolon 153:154 ";"))
+      (Whitespace 154:155 " ")
+      (Option 155:178
+        (Keyword 155:162 "content")
+        (Colon 162:163 ":")
+        (Value 163:177 "\"/admin/login\"")
+        (Semicolon 177:178 ";"))
+      (Whitespace 178:179 " ")
+      (Option 179:190
+        (Keyword 179:189 "startswith")
+        (Semicolon 189:190 ";"))
+      (Whitespace 190:191 " ")
+      (LineContinuation 191:193 "\\\n")
+      (Whitespace 193:195 "  ")
+      (Option 195:228
+        (Keyword 195:204 "classtype")
+        (Colon 204:205 ":")
+        (Value 205:227 "web-application-attack")
+        (Semicolon 227:228 ";"))
+      (Whitespace 228:229 " ")
+      (LineContinuation 229:231 "\\\n")
+      (Whitespace 231:233 "  ")
+      (Option 233:245
+        (Keyword 233:236 "sid")
+        (Colon 236:237 ":")
+        (Value 237:244 "1000002")
+        (Semicolon 244:245 ";"))
+      (Whitespace 245:246 " ")
+      (Option 246:252
+        (Keyword 246:249 "rev")
+        (Colon 249:250 ":")
+        (Value 250:251 "1")
+        (Semicolon 251:252 ";")))
+    (RParen 252:253 ")")
+    (Newline 253:254 "\n"))
+  (EOF 254:254 ""))
+

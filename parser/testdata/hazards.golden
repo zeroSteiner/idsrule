@@ -1,0 +1,295 @@
+(File 0:652
+  (Rule 0:95
+    (Header 0:28
+      (Word 0:5 "alert")
+      (Whitespace 5:6 " ")
+      (Word 6:9 "tcp")
+      (Whitespace 9:10 " ")
+      (Group 10:13
+        (Word 10:13 "any"))
+      (Whitespace 13:14 " ")
+      (Group 14:17
+        (Word 14:17 "any"))
+      (Whitespace 17:18 " ")
+      (Word 18:20 "->")
+      (Whitespace 20:21 " ")
+      (Group 21:24
+        (Word 21:24 "any"))
+      (Whitespace 24:25 " ")
+      (Group 25:28
+        (Word 25:28 "any")))
+    (Whitespace 28:29 " ")
+    (LParen 29:30 "(")
+    (Body 30:93
+      (Option 30:64
+        (Keyword 30:33 "msg")
+        (Colon 33:34 ":")
+        (Value 34:63 "\"pcre with escaped semicolon\"")
+        (Semicolon 63:64 ";"))
+      (Whitespace 64:65 " ")
+      (Option 65:86
+        (Keyword 65:69 "pcre")
+        (Colon 69:70 ":")
+        (Value 70:85 "\"/a(?:\\;|%3b)/\"")
+        (Semicolon 85:86 ";"))
+      (Whitespace 86:87 " ")
+      (Option 87:93
+        (Keyword 87:90 "sid")
+        (Colon 90:91 ":")
+        (Value 91:92 "1")
+        (Semicolon 92:93 ";")))
+    (RParen 93:94 ")")
+    (Newline 94:95 "\n"))
+  (Rule 95:175
+    (Header 95:123
+      (Word 95:100 "alert")
+      (Whitespace 100:101 " ")
+      (Word 101:104 "tcp")
+      (Whitespace 104:105 " ")
+      (Group 105:108
+        (Word 105:108 "any"))
+      (Whitespace 108:109 " ")
+      (Group 109:112
+        (Word 109:112 "any"))
+      (Whitespace 112:113 " ")
+      (Word 113:115 "->")
+      (Whitespace 115:116 " ")
+      (Group 116:119
+        (Word 116:119 "any"))
+      (Whitespace 119:120 " ")
+      (Group 120:123
+        (Word 120:123 "any")))
+    (Whitespace 123:124 " ")
+    (LParen 124:125 "(")
+    (Body 125:173
+      (Option 125:150
+        (Keyword 125:128 "msg")
+        (Colon 128:129 ":")
+        (Value 129:149 "\"parens (in) string\"")
+        (Semicolon 149:150 ";"))
+      (Whitespace 150:151 " ")
+      (Option 151:166
+        (Keyword 151:155 "pcre")
+        (Colon 155:156 ":")
+        (Value 156:165 "\"/(?:a)/\"")
+        (Semicolon 165:166 ";"))
+      (Whitespace 166:167 " ")
+      (Option 167:173
+        (Keyword 167:170 "sid")
+        (Colon 170:171 ":")
+        (Value 171:172 "2")
+        (Semicolon 172:173 ";")))
+    (RParen 173:174 ")")
+    (Newline 174:175 "\n"))
+  (Rule 175:260
+    (Header 175:203
+      (Word 175:180 "alert")
+      (Whitespace 180:181 " ")
+      (Word 181:184 "tcp")
+      (Whitespace 184:185 " ")
+      (Group 185:188
+        (Word 185:188 "any"))
+      (Whitespace 188:189 " ")
+      (Group 189:192
+        (Word 189:192 "any"))
+      (Whitespace 192:193 " ")
+      (Word 193:195 "->")
+      (Whitespace 195:196 " ")
+      (Group 196:199
+        (Word 196:199 "any"))
+      (Whitespace 199:200 " ")
+      (Group 200:203
+        (Word 200:203 "any")))
+    (Whitespace 203:204 " ")
+    (LParen 204:205 "(")
+    (Body 205:258
+      (Option 205:226
+        (Keyword 205:208 "msg")
+        (Colon 208:209 ":")
+        (Value 209:225 "\"escaped quotes\"")
+        (Semicolon 225:226 ";"))
+      (Whitespace 226:227 " ")
+      (Option 227:251
+        (Keyword 227:234 "content")
+        (Colon 234:235 ":")
+        (Value 235:250 "\"name=\\\"meta\\\"\"")
+        (Semicolon 250:251 ";"))
+      (Whitespace 251:252 " ")
+      (Option 252:258
+        (Keyword 252:255 "sid")
+        (Colon 255:256 ":")
+        (Value 256:257 "3")
+        (Semicolon 257:258 ";")))
+    (RParen 258:259 ")")
+    (Newline 259:260 "\n"))
+  (Rule 260:347
+    (Header 260:288
+      (Word 260:265 "alert")
+      (Whitespace 265:266 " ")
+      (Word 266:269 "tcp")
+      (Whitespace 269:270 " ")
+      (Group 270:273
+        (Word 270:273 "any"))
+      (Whitespace 273:274 " ")
+      (Group 274:277
+        (Word 274:277 "any"))
+      (Whitespace 277:278 " ")
+      (Word 278:280 "->")
+      (Whitespace 280:281 " ")
+      (Group 281:284
+        (Word 281:284 "any"))
+      (Whitespace 284:285 " ")
+      (Group 285:288
+        (Word 285:288 "any")))
+    (Whitespace 288:289 " ")
+    (LParen 289:290 "(")
+    (Body 290:345
+      (Option 290:306
+        (Keyword 290:293 "msg")
+        (Colon 293:294 ":")
+        (Value 294:305 "\"hex block\"")
+        (Semicolon 305:306 ";"))
+      (Whitespace 306:307 " ")
+      (Option 307:338
+        (Keyword 307:314 "content")
+        (Colon 314:315 ":")
+        (Value 315:337 "\"|89|HDF|0d 0a 1a 0a|\"")
+        (Semicolon 337:338 ";"))
+      (Whitespace 338:339 " ")
+      (Option 339:345
+        (Keyword 339:342 "sid")
+        (Colon 342:343 ":")
+        (Value 343:344 "4")
+        (Semicolon 344:345 ";")))
+    (RParen 345:346 ")")
+    (Newline 346:347 "\n"))
+  (Rule 347:435
+    (Header 347:375
+      (Word 347:352 "alert")
+      (Whitespace 352:353 " ")
+      (Word 353:356 "tcp")
+      (Whitespace 356:357 " ")
+      (Group 357:360
+        (Word 357:360 "any"))
+      (Whitespace 360:361 " ")
+      (Group 361:364
+        (Word 361:364 "any"))
+      (Whitespace 364:365 " ")
+      (Word 365:367 "->")
+      (Whitespace 367:368 " ")
+      (Group 368:371
+        (Word 368:371 "any"))
+      (Whitespace 371:372 " ")
+      (Group 372:375
+        (Word 372:375 "any")))
+    (Whitespace 375:376 " ")
+    (LParen 376:377 "(")
+    (Body 377:433
+      (Option 377:399
+        (Keyword 377:380 "msg")
+        (Colon 380:381 ":")
+        (Value 381:398 "\"negated content\"")
+        (Semicolon 398:399 ";"))
+      (Whitespace 399:400 " ")
+      (Option 400:418
+        (Keyword 400:407 "content")
+        (Colon 407:408 ":")
+        (Value 408:417 "!\"Cookie\"")
+        (Semicolon 417:418 ";"))
+      (Whitespace 418:419 " ")
+      (Option 419:426
+        (Keyword 419:425 "nocase")
+        (Semicolon 425:426 ";"))
+      (Whitespace 426:427 " ")
+      (Option 427:433
+        (Keyword 427:430 "sid")
+        (Colon 430:431 ":")
+        (Value 431:432 "5")
+        (Semicolon 432:433 ";")))
+    (RParen 433:434 ")")
+    (Newline 434:435 "\n"))
+  (Rule 435:523
+    (Header 435:463
+      (Word 435:440 "alert")
+      (Whitespace 440:441 " ")
+      (Word 441:444 "tcp")
+      (Whitespace 444:445 " ")
+      (Group 445:448
+        (Word 445:448 "any"))
+      (Whitespace 448:449 " ")
+      (Group 449:452
+        (Word 449:452 "any"))
+      (Whitespace 452:453 " ")
+      (Word 453:455 "->")
+      (Whitespace 455:456 " ")
+      (Group 456:459
+        (Word 456:459 "any"))
+      (Whitespace 459:460 " ")
+      (Group 460:463
+        (Word 460:463 "any")))
+    (Whitespace 463:464 " ")
+    (LParen 464:465 "(")
+    (Body 465:521
+      (Option 465:493
+        (Keyword 465:468 "msg")
+        (Colon 468:469 ":")
+        (Value 469:492 "\"snort3 comma modifier\"")
+        (Semicolon 492:493 ";"))
+      (Whitespace 493:494 " ")
+      (Option 494:514
+        (Keyword 494:501 "content")
+        (Colon 501:502 ":")
+        (Value 502:513 "\"x\", nocase")
+        (Semicolon 513:514 ";"))
+      (Whitespace 514:515 " ")
+      (Option 515:521
+        (Keyword 515:518 "sid")
+        (Colon 518:519 ":")
+        (Value 519:520 "6")
+        (Semicolon 520:521 ";")))
+    (RParen 521:522 ")")
+    (Newline 522:523 "\n"))
+  (Rule 523:652
+    (Header 523:551
+      (Word 523:528 "alert")
+      (Whitespace 528:529 " ")
+      (Word 529:532 "tcp")
+      (Whitespace 532:533 " ")
+      (Group 533:536
+        (Word 533:536 "any"))
+      (Whitespace 536:537 " ")
+      (Group 537:540
+        (Word 537:540 "any"))
+      (Whitespace 540:541 " ")
+      (Word 541:543 "->")
+      (Whitespace 543:544 " ")
+      (Group 544:547
+        (Word 544:547 "any"))
+      (Whitespace 547:548 " ")
+      (Group 548:551
+        (Word 548:551 "any")))
+    (Whitespace 551:552 " ")
+    (LParen 552:553 "(")
+    (Body 553:650
+      (Option 553:587
+        (Keyword 553:556 "msg")
+        (Colon 556:557 ":")
+        (Value 557:586 "\"metadata with leading space\"")
+        (Semicolon 586:587 ";"))
+      (Whitespace 587:588 " ")
+      (Option 588:643
+        (Keyword 588:596 "metadata")
+        (Colon 596:597 ":")
+        (Whitespace 597:598 " ")
+        (Value 598:642 "deployment Datacenter, deployment SSLDecrypt")
+        (Semicolon 642:643 ";"))
+      (Whitespace 643:644 " ")
+      (Option 644:650
+        (Keyword 644:647 "sid")
+        (Colon 647:648 ":")
+        (Value 648:649 "7")
+        (Semicolon 649:650 ";")))
+    (RParen 650:651 ")")
+    (Newline 651:652 "\n"))
+  (EOF 652:652 ""))
+

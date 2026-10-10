@@ -1,0 +1,2 @@
+this is not a rule
+alert tcp any any -> any any (sid:2;)

@@ -1,0 +1,4 @@
+alert tcp any any -> any any (msg:"crlf"; sid:1;)
+alert tcp any any -> any any ( \
+    msg:"crlf multiline"; \
+    sid:2; rev:1;)

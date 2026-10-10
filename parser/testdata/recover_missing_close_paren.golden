@@ -1,0 +1,62 @@
+(File 0:75
+  (Rule 0:37
+    (Header 0:28
+      (Word 0:5 "alert")
+      (Whitespace 5:6 " ")
+      (Word 6:9 "tcp")
+      (Whitespace 9:10 " ")
+      (Group 10:13
+        (Word 10:13 "any"))
+      (Whitespace 13:14 " ")
+      (Group 14:17
+        (Word 14:17 "any"))
+      (Whitespace 17:18 " ")
+      (Word 18:20 "->")
+      (Whitespace 20:21 " ")
+      (Group 21:24
+        (Word 21:24 "any"))
+      (Whitespace 24:25 " ")
+      (Group 25:28
+        (Word 25:28 "any")))
+    (Whitespace 28:29 " ")
+    (LParen 29:30 "(")
+    (Body 30:36
+      (Option 30:36
+        (Keyword 30:33 "sid")
+        (Colon 33:34 ":")
+        (Value 34:35 "1")
+        (Semicolon 35:36 ";")))
+    (Missing 36:36 "")
+    (Newline 36:37 "\n"))
+  (Rule 37:75
+    (Header 37:65
+      (Word 37:42 "alert")
+      (Whitespace 42:43 " ")
+      (Word 43:46 "tcp")
+      (Whitespace 46:47 " ")
+      (Group 47:50
+        (Word 47:50 "any"))
+      (Whitespace 50:51 " ")
+      (Group 51:54
+        (Word 51:54 "any"))
+      (Whitespace 54:55 " ")
+      (Word 55:57 "->")
+      (Whitespace 57:58 " ")
+      (Group 58:61
+        (Word 58:61 "any"))
+      (Whitespace 61:62 " ")
+      (Group 62:65
+        (Word 62:65 "any")))
+    (Whitespace 65:66 " ")
+    (LParen 66:67 "(")
+    (Body 67:73
+      (Option 67:73
+        (Keyword 67:70 "sid")
+        (Colon 70:71 ":")
+        (Value 71:72 "2")
+        (Semicolon 72:73 ";")))
+    (RParen 73:74 ")")
+    (Newline 74:75 "\n"))
+  (EOF 75:75 ""))
+
+diag syntax-missing-close-paren 36:36 expected ')' before end of line

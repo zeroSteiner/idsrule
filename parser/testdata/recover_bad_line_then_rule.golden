@@ -1,0 +1,44 @@
+(File 0:57
+  (Bad 0:19
+    (Word 0:4 "this")
+    (Whitespace 4:5 " ")
+    (Word 5:7 "is")
+    (Whitespace 7:8 " ")
+    (Word 8:11 "not")
+    (Whitespace 11:12 " ")
+    (Word 12:13 "a")
+    (Whitespace 13:14 " ")
+    (Word 14:18 "rule")
+    (Newline 18:19 "\n"))
+  (Rule 19:57
+    (Header 19:47
+      (Word 19:24 "alert")
+      (Whitespace 24:25 " ")
+      (Word 25:28 "tcp")
+      (Whitespace 28:29 " ")
+      (Group 29:32
+        (Word 29:32 "any"))
+      (Whitespace 32:33 " ")
+      (Group 33:36
+        (Word 33:36 "any"))
+      (Whitespace 36:37 " ")
+      (Word 37:39 "->")
+      (Whitespace 39:40 " ")
+      (Group 40:43
+        (Word 40:43 "any"))
+      (Whitespace 43:44 " ")
+      (Group 44:47
+        (Word 44:47 "any")))
+    (Whitespace 47:48 " ")
+    (LParen 48:49 "(")
+    (Body 49:55
+      (Option 49:55
+        (Keyword 49:52 "sid")
+        (Colon 52:53 ":")
+        (Value 53:54 "2")
+        (Semicolon 54:55 ";")))
+    (RParen 55:56 ")")
+    (Newline 56:57 "\n"))
+  (EOF 57:57 ""))
+
+diag syntax-bad-header 0:4 expected a rule action, got "this"

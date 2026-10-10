@@ -1,0 +1,8 @@
+# Rules for the example service
+# Second comment line
+
+alert tcp any any -> any any (msg:"one"; sid:1;)
+   
+  # indented comment
+alert tcp any any -> any any (msg:"two"; sid:2;)
+

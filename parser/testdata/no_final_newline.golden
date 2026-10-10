@@ -1,0 +1,37 @@
+(File 0:61
+  (Rule 0:61
+    (Header 0:28
+      (Word 0:5 "alert")
+      (Whitespace 5:6 " ")
+      (Word 6:9 "tcp")
+      (Whitespace 9:10 " ")
+      (Group 10:13
+        (Word 10:13 "any"))
+      (Whitespace 13:14 " ")
+      (Group 14:17
+        (Word 14:17 "any"))
+      (Whitespace 17:18 " ")
+      (Word 18:20 "->")
+      (Whitespace 20:21 " ")
+      (Group 21:24
+        (Word 21:24 "any"))
+      (Whitespace 24:25 " ")
+      (Group 25:28
+        (Word 25:28 "any")))
+    (Whitespace 28:29 " ")
+    (LParen 29:30 "(")
+    (Body 30:60
+      (Option 30:53
+        (Keyword 30:33 "msg")
+        (Colon 33:34 ":")
+        (Value 34:52 "\"no final newline\"")
+        (Semicolon 52:53 ";"))
+      (Whitespace 53:54 " ")
+      (Option 54:60
+        (Keyword 54:57 "sid")
+        (Colon 57:58 ":")
+        (Value 58:59 "1")
+        (Semicolon 59:60 ";")))
+    (RParen 60:61 ")"))
+  (EOF 61:61 ""))
+

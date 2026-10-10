@@ -1,0 +1,70 @@
+(File 0:84
+  (Rule 0:46
+    (Header 0:28
+      (Word 0:5 "alert")
+      (Whitespace 5:6 " ")
+      (Word 6:9 "tcp")
+      (Whitespace 9:10 " ")
+      (Group 10:13
+        (Word 10:13 "any"))
+      (Whitespace 13:14 " ")
+      (Group 14:17
+        (Word 14:17 "any"))
+      (Whitespace 17:18 " ")
+      (Word 18:20 "->")
+      (Whitespace 20:21 " ")
+      (Group 21:24
+        (Word 21:24 "any"))
+      (Whitespace 24:25 " ")
+      (Group 25:28
+        (Word 25:28 "any")))
+    (Whitespace 28:29 " ")
+    (LParen 29:30 "(")
+    (Body 30:44
+      (Option 30:36
+        (Keyword 30:33 "sid")
+        (Colon 33:34 ":")
+        (Value 34:35 "1")
+        (Semicolon 35:36 ";"))
+      (Bad 36:37
+        (Semicolon 36:37 ";"))
+      (Whitespace 37:38 " ")
+      (Option 38:44
+        (Keyword 38:41 "rev")
+        (Colon 41:42 ":")
+        (Value 42:43 "1")
+        (Semicolon 43:44 ";")))
+    (RParen 44:45 ")")
+    (Newline 45:46 "\n"))
+  (Rule 46:84
+    (Header 46:74
+      (Word 46:51 "alert")
+      (Whitespace 51:52 " ")
+      (Word 52:55 "tcp")
+      (Whitespace 55:56 " ")
+      (Group 56:59
+        (Word 56:59 "any"))
+      (Whitespace 59:60 " ")
+      (Group 60:63
+        (Word 60:63 "any"))
+      (Whitespace 63:64 " ")
+      (Word 64:66 "->")
+      (Whitespace 66:67 " ")
+      (Group 67:70
+        (Word 67:70 "any"))
+      (Whitespace 70:71 " ")
+      (Group 71:74
+        (Word 71:74 "any")))
+    (Whitespace 74:75 " ")
+    (LParen 75:76 "(")
+    (Body 76:82
+      (Option 76:82
+        (Keyword 76:79 "sid")
+        (Colon 79:80 ":")
+        (Value 80:81 "2")
+        (Semicolon 81:82 ";")))
+    (RParen 82:83 ")")
+    (Newline 83:84 "\n"))
+  (EOF 84:84 ""))
+
+diag syntax-empty-option 36:37 unexpected ';': empty option

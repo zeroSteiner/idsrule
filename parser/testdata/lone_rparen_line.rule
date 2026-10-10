@@ -1,0 +1,8 @@
+alert tcp any any -> any any ( \
+    msg:"EXAMPLE Splunk PostgreSQL Recovery Backup Attempt"; \
+    flow:to_server,established; \
+    content:"POST"; http_method; \
+    content:"/postgres/recovery/backup"; http_uri; \
+    sid:1000005; rev:1; \
+    metadata: deployment Datacenter, deployment SSLDecrypt; \
+)

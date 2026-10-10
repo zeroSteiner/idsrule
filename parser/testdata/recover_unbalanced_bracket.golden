@@ -1,0 +1,65 @@
+(File 0:91
+  (Rule 0:53
+    (Header 0:43
+      (Word 0:5 "alert")
+      (Whitespace 5:6 " ")
+      (Word 6:9 "tcp")
+      (Whitespace 9:10 " ")
+      (Group 10:28
+        (LBracket 10:11 "[")
+        (Word 11:19 "10.0.0.1")
+        (Comma 19:20 ",")
+        (Word 20:28 "10.0.0.2"))
+      (Whitespace 28:29 " ")
+      (Group 29:32
+        (Word 29:32 "any"))
+      (Whitespace 32:33 " ")
+      (Word 33:35 "->")
+      (Whitespace 35:36 " ")
+      (Group 36:39
+        (Word 36:39 "any"))
+      (Whitespace 39:40 " ")
+      (Group 40:43
+        (Word 40:43 "any")))
+    (Whitespace 43:44 " ")
+    (LParen 44:45 "(")
+    (Body 45:51
+      (Option 45:51
+        (Keyword 45:48 "sid")
+        (Colon 48:49 ":")
+        (Value 49:50 "1")
+        (Semicolon 50:51 ";")))
+    (RParen 51:52 ")")
+    (Newline 52:53 "\n"))
+  (Rule 53:91
+    (Header 53:81
+      (Word 53:58 "alert")
+      (Whitespace 58:59 " ")
+      (Word 59:62 "tcp")
+      (Whitespace 62:63 " ")
+      (Group 63:66
+        (Word 63:66 "any"))
+      (Whitespace 66:67 " ")
+      (Group 67:70
+        (Word 67:70 "any"))
+      (Whitespace 70:71 " ")
+      (Word 71:73 "->")
+      (Whitespace 73:74 " ")
+      (Group 74:77
+        (Word 74:77 "any"))
+      (Whitespace 77:78 " ")
+      (Group 78:81
+        (Word 78:81 "any")))
+    (Whitespace 81:82 " ")
+    (LParen 82:83 "(")
+    (Body 83:89
+      (Option 83:89
+        (Keyword 83:86 "sid")
+        (Colon 86:87 ":")
+        (Value 87:88 "2")
+        (Semicolon 88:89 ";")))
+    (RParen 89:90 ")")
+    (Newline 90:91 "\n"))
+  (EOF 91:91 ""))
+
+diag syntax-unbalanced-bracket 10:11 unbalanced '[': no matching ']'

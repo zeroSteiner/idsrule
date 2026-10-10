@@ -1,0 +1,67 @@
+(File 0:82
+  (Rule 0:44
+    (Header 0:28
+      (Word 0:5 "alert")
+      (Whitespace 5:6 " ")
+      (Word 6:9 "tcp")
+      (Whitespace 9:10 " ")
+      (Group 10:13
+        (Word 10:13 "any"))
+      (Whitespace 13:14 " ")
+      (Group 14:17
+        (Word 14:17 "any"))
+      (Whitespace 17:18 " ")
+      (Word 18:20 "->")
+      (Whitespace 20:21 " ")
+      (Group 21:24
+        (Word 21:24 "any"))
+      (Whitespace 24:25 " ")
+      (Group 25:28
+        (Word 25:28 "any")))
+    (Whitespace 28:29 " ")
+    (LParen 29:30 "(")
+    (Body 30:42
+      (Option 30:35
+        (Keyword 30:33 "msg")
+        (Colon 33:34 ":")
+        (Semicolon 34:35 ";"))
+      (Whitespace 35:36 " ")
+      (Option 36:42
+        (Keyword 36:39 "sid")
+        (Colon 39:40 ":")
+        (Value 40:41 "1")
+        (Semicolon 41:42 ";")))
+    (RParen 42:43 ")")
+    (Newline 43:44 "\n"))
+  (Rule 44:82
+    (Header 44:72
+      (Word 44:49 "alert")
+      (Whitespace 49:50 " ")
+      (Word 50:53 "tcp")
+      (Whitespace 53:54 " ")
+      (Group 54:57
+        (Word 54:57 "any"))
+      (Whitespace 57:58 " ")
+      (Group 58:61
+        (Word 58:61 "any"))
+      (Whitespace 61:62 " ")
+      (Word 62:64 "->")
+      (Whitespace 64:65 " ")
+      (Group 65:68
+        (Word 65:68 "any"))
+      (Whitespace 68:69 " ")
+      (Group 69:72
+        (Word 69:72 "any")))
+    (Whitespace 72:73 " ")
+    (LParen 73:74 "(")
+    (Body 74:80
+      (Option 74:80
+        (Keyword 74:77 "sid")
+        (Colon 77:78 ":")
+        (Value 78:79 "2")
+        (Semicolon 79:80 ";")))
+    (RParen 80:81 ")")
+    (Newline 81:82 "\n"))
+  (EOF 82:82 ""))
+
+diag syntax-missing-value 33:34 option "msg" has ':' but no value

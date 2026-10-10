@@ -1,0 +1,55 @@
+(File 0:77
+  (Bad 0:39
+    (Word 0:6 "alerts")
+    (Whitespace 6:7 " ")
+    (Word 7:10 "tcp")
+    (Whitespace 10:11 " ")
+    (Word 11:14 "any")
+    (Whitespace 14:15 " ")
+    (Word 15:18 "any")
+    (Whitespace 18:19 " ")
+    (Word 19:21 "->")
+    (Whitespace 21:22 " ")
+    (Word 22:25 "any")
+    (Whitespace 25:26 " ")
+    (Word 26:29 "any")
+    (Whitespace 29:30 " ")
+    (LParen 30:31 "(")
+    (Keyword 31:34 "sid")
+    (Colon 34:35 ":")
+    (Value 35:36 "1")
+    (Semicolon 36:37 ";")
+    (RParen 37:38 ")")
+    (Newline 38:39 "\n"))
+  (Rule 39:77
+    (Header 39:67
+      (Word 39:44 "alert")
+      (Whitespace 44:45 " ")
+      (Word 45:48 "tcp")
+      (Whitespace 48:49 " ")
+      (Group 49:52
+        (Word 49:52 "any"))
+      (Whitespace 52:53 " ")
+      (Group 53:56
+        (Word 53:56 "any"))
+      (Whitespace 56:57 " ")
+      (Word 57:59 "->")
+      (Whitespace 59:60 " ")
+      (Group 60:63
+        (Word 60:63 "any"))
+      (Whitespace 63:64 " ")
+      (Group 64:67
+        (Word 64:67 "any")))
+    (Whitespace 67:68 " ")
+    (LParen 68:69 "(")
+    (Body 69:75
+      (Option 69:75
+        (Keyword 69:72 "sid")
+        (Colon 72:73 ":")
+        (Value 73:74 "2")
+        (Semicolon 74:75 ";")))
+    (RParen 75:76 ")")
+    (Newline 76:77 "\n"))
+  (EOF 77:77 ""))
+
+diag syntax-bad-header 0:6 expected a rule action, got "alerts"

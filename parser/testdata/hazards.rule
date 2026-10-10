@@ -1,0 +1,7 @@
+alert tcp any any -> any any (msg:"pcre with escaped semicolon"; pcre:"/a(?:\;|%3b)/"; sid:1;)
+alert tcp any any -> any any (msg:"parens (in) string"; pcre:"/(?:a)/"; sid:2;)
+alert tcp any any -> any any (msg:"escaped quotes"; content:"name=\"meta\""; sid:3;)
+alert tcp any any -> any any (msg:"hex block"; content:"|89|HDF|0d 0a 1a 0a|"; sid:4;)
+alert tcp any any -> any any (msg:"negated content"; content:!"Cookie"; nocase; sid:5;)
+alert tcp any any -> any any (msg:"snort3 comma modifier"; content:"x", nocase; sid:6;)
+alert tcp any any -> any any (msg:"metadata with leading space"; metadata: deployment Datacenter, deployment SSLDecrypt; sid:7;)

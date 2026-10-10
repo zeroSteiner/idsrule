@@ -1,0 +1,56 @@
+(File 0:53
+  (Rule 0:15
+    (Header 0:5
+      (Word 0:5 "alert")
+      (Missing 5:5 "")
+      (Group 5:5
+        (Missing 5:5 ""))
+      (Group 5:5
+        (Missing 5:5 ""))
+      (Missing 5:5 "")
+      (Group 5:5
+        (Missing 5:5 ""))
+      (Group 5:5
+        (Missing 5:5 "")))
+    (Whitespace 5:6 " ")
+    (LParen 6:7 "(")
+    (Body 7:13
+      (Option 7:13
+        (Keyword 7:10 "sid")
+        (Colon 10:11 ":")
+        (Value 11:12 "1")
+        (Semicolon 12:13 ";")))
+    (RParen 13:14 ")")
+    (Newline 14:15 "\n"))
+  (Rule 15:53
+    (Header 15:43
+      (Word 15:20 "alert")
+      (Whitespace 20:21 " ")
+      (Word 21:24 "tcp")
+      (Whitespace 24:25 " ")
+      (Group 25:28
+        (Word 25:28 "any"))
+      (Whitespace 28:29 " ")
+      (Group 29:32
+        (Word 29:32 "any"))
+      (Whitespace 32:33 " ")
+      (Word 33:35 "->")
+      (Whitespace 35:36 " ")
+      (Group 36:39
+        (Word 36:39 "any"))
+      (Whitespace 39:40 " ")
+      (Group 40:43
+        (Word 40:43 "any")))
+    (Whitespace 43:44 " ")
+    (LParen 44:45 "(")
+    (Body 45:51
+      (Option 45:51
+        (Keyword 45:48 "sid")
+        (Colon 48:49 ":")
+        (Value 49:50 "2")
+        (Semicolon 50:51 ";")))
+    (RParen 51:52 ")")
+    (Newline 52:53 "\n"))
+  (EOF 53:53 ""))
+
+diag syntax-bad-header 5:5 header is missing its protocol

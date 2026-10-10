@@ -1,0 +1,59 @@
+(File 0:65
+  (Rule 0:27
+    (Header 0:17
+      (Word 0:5 "alert")
+      (Whitespace 5:6 " ")
+      (Word 6:9 "tcp")
+      (Whitespace 9:10 " ")
+      (Group 10:13
+        (Word 10:13 "any"))
+      (Whitespace 13:14 " ")
+      (Group 14:17
+        (Word 14:17 "any"))
+      (Missing 17:17 "")
+      (Group 17:17
+        (Missing 17:17 ""))
+      (Group 17:17
+        (Missing 17:17 "")))
+    (Whitespace 17:18 " ")
+    (LParen 18:19 "(")
+    (Body 19:25
+      (Option 19:25
+        (Keyword 19:22 "sid")
+        (Colon 22:23 ":")
+        (Value 23:24 "1")
+        (Semicolon 24:25 ";")))
+    (RParen 25:26 ")")
+    (Newline 26:27 "\n"))
+  (Rule 27:65
+    (Header 27:55
+      (Word 27:32 "alert")
+      (Whitespace 32:33 " ")
+      (Word 33:36 "tcp")
+      (Whitespace 36:37 " ")
+      (Group 37:40
+        (Word 37:40 "any"))
+      (Whitespace 40:41 " ")
+      (Group 41:44
+        (Word 41:44 "any"))
+      (Whitespace 44:45 " ")
+      (Word 45:47 "->")
+      (Whitespace 47:48 " ")
+      (Group 48:51
+        (Word 48:51 "any"))
+      (Whitespace 51:52 " ")
+      (Group 52:55
+        (Word 52:55 "any")))
+    (Whitespace 55:56 " ")
+    (LParen 56:57 "(")
+    (Body 57:63
+      (Option 57:63
+        (Keyword 57:60 "sid")
+        (Colon 60:61 ":")
+        (Value 61:62 "2")
+        (Semicolon 62:63 ";")))
+    (RParen 63:64 ")")
+    (Newline 64:65 "\n"))
+  (EOF 65:65 ""))
+
+diag syntax-bad-header 17:17 header is missing its direction

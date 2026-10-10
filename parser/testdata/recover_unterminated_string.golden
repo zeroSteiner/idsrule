@@ -1,0 +1,62 @@
+(File 0:77
+  (Rule 0:39
+    (Header 0:28
+      (Word 0:5 "alert")
+      (Whitespace 5:6 " ")
+      (Word 6:9 "tcp")
+      (Whitespace 9:10 " ")
+      (Group 10:13
+        (Word 10:13 "any"))
+      (Whitespace 13:14 " ")
+      (Group 14:17
+        (Word 14:17 "any"))
+      (Whitespace 17:18 " ")
+      (Word 18:20 "->")
+      (Whitespace 20:21 " ")
+      (Group 21:24
+        (Word 21:24 "any"))
+      (Whitespace 24:25 " ")
+      (Group 25:28
+        (Word 25:28 "any")))
+    (Whitespace 28:29 " ")
+    (LParen 29:30 "(")
+    (Body 30:38
+      (Option 30:38
+        (Keyword 30:33 "msg")
+        (Colon 33:34 ":")
+        (Value 34:38 "\"abc")
+        (Missing 38:38 "")))
+    (Missing 38:38 "")
+    (Newline 38:39 "\n"))
+  (Rule 39:77
+    (Header 39:67
+      (Word 39:44 "alert")
+      (Whitespace 44:45 " ")
+      (Word 45:48 "tcp")
+      (Whitespace 48:49 " ")
+      (Group 49:52
+        (Word 49:52 "any"))
+      (Whitespace 52:53 " ")
+      (Group 53:56
+        (Word 53:56 "any"))
+      (Whitespace 56:57 " ")
+      (Word 57:59 "->")
+      (Whitespace 59:60 " ")
+      (Group 60:63
+        (Word 60:63 "any"))
+      (Whitespace 63:64 " ")
+      (Group 64:67
+        (Word 64:67 "any")))
+    (Whitespace 67:68 " ")
+    (LParen 68:69 "(")
+    (Body 69:75
+      (Option 69:75
+        (Keyword 69:72 "sid")
+        (Colon 72:73 ":")
+        (Value 73:74 "2")
+        (Semicolon 74:75 ";")))
+    (RParen 75:76 ")")
+    (Newline 76:77 "\n"))
+  (EOF 77:77 ""))
+
+diag syntax-unterminated-string 34:38 unterminated string

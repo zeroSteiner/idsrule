@@ -1,0 +1,62 @@
+(File 0:76
+  (Rule 0:38
+    (Header 0:28
+      (Word 0:5 "alert")
+      (Whitespace 5:6 " ")
+      (Word 6:9 "tcp")
+      (Whitespace 9:10 " ")
+      (Group 10:13
+        (Word 10:13 "any"))
+      (Whitespace 13:14 " ")
+      (Group 14:17
+        (Word 14:17 "any"))
+      (Whitespace 17:18 " ")
+      (Word 18:20 "<-")
+      (Whitespace 20:21 " ")
+      (Group 21:24
+        (Word 21:24 "any"))
+      (Whitespace 24:25 " ")
+      (Group 25:28
+        (Word 25:28 "any")))
+    (Whitespace 28:29 " ")
+    (LParen 29:30 "(")
+    (Body 30:36
+      (Option 30:36
+        (Keyword 30:33 "sid")
+        (Colon 33:34 ":")
+        (Value 34:35 "1")
+        (Semicolon 35:36 ";")))
+    (RParen 36:37 ")")
+    (Newline 37:38 "\n"))
+  (Rule 38:76
+    (Header 38:66
+      (Word 38:43 "alert")
+      (Whitespace 43:44 " ")
+      (Word 44:47 "tcp")
+      (Whitespace 47:48 " ")
+      (Group 48:51
+        (Word 48:51 "any"))
+      (Whitespace 51:52 " ")
+      (Group 52:55
+        (Word 52:55 "any"))
+      (Whitespace 55:56 " ")
+      (Word 56:58 "->")
+      (Whitespace 58:59 " ")
+      (Group 59:62
+        (Word 59:62 "any"))
+      (Whitespace 62:63 " ")
+      (Group 63:66
+        (Word 63:66 "any")))
+    (Whitespace 66:67 " ")
+    (LParen 67:68 "(")
+    (Body 68:74
+      (Option 68:74
+        (Keyword 68:71 "sid")
+        (Colon 71:72 ":")
+        (Value 72:73 "2")
+        (Semicolon 73:74 ";")))
+    (RParen 74:75 ")")
+    (Newline 75:76 "\n"))
+  (EOF 76:76 ""))
+
+diag syntax-bad-header 18:20 expected direction '->' or '<>', got "<-"

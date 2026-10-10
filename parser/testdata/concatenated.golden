@@ -1,0 +1,142 @@
+(File 0:203
+  (Rule 0:50
+    (Header 0:28
+      (Word 0:5 "alert")
+      (Whitespace 5:6 " ")
+      (Word 6:9 "tcp")
+      (Whitespace 9:10 " ")
+      (Group 10:13
+        (Word 10:13 "any"))
+      (Whitespace 13:14 " ")
+      (Group 14:17
+        (Word 14:17 "any"))
+      (Whitespace 17:18 " ")
+      (Word 18:20 "->")
+      (Whitespace 20:21 " ")
+      (Group 21:24
+        (Word 21:24 "any"))
+      (Whitespace 24:25 " ")
+      (Group 25:28
+        (Word 25:28 "any")))
+    (Whitespace 28:29 " ")
+    (LParen 29:30 "(")
+    (Body 30:49
+      (Option 30:42
+        (Keyword 30:33 "msg")
+        (Colon 33:34 ":")
+        (Value 34:41 "\"first\"")
+        (Semicolon 41:42 ";"))
+      (Whitespace 42:43 " ")
+      (Option 43:49
+        (Keyword 43:46 "sid")
+        (Colon 46:47 ":")
+        (Value 47:48 "1")
+        (Semicolon 48:49 ";")))
+    (RParen 49:50 ")"))
+  (Rule 50:102
+    (Header 50:78
+      (Word 50:55 "alert")
+      (Whitespace 55:56 " ")
+      (Word 56:59 "tcp")
+      (Whitespace 59:60 " ")
+      (Group 60:63
+        (Word 60:63 "any"))
+      (Whitespace 63:64 " ")
+      (Group 64:67
+        (Word 64:67 "any"))
+      (Whitespace 67:68 " ")
+      (Word 68:70 "->")
+      (Whitespace 70:71 " ")
+      (Group 71:74
+        (Word 71:74 "any"))
+      (Whitespace 74:75 " ")
+      (Group 75:78
+        (Word 75:78 "any")))
+    (Whitespace 78:79 " ")
+    (LParen 79:80 "(")
+    (Body 80:100
+      (Option 80:93
+        (Keyword 80:83 "msg")
+        (Colon 83:84 ":")
+        (Value 84:92 "\"second\"")
+        (Semicolon 92:93 ";"))
+      (Whitespace 93:94 " ")
+      (Option 94:100
+        (Keyword 94:97 "sid")
+        (Colon 97:98 ":")
+        (Value 98:99 "2")
+        (Semicolon 99:100 ";")))
+    (RParen 100:101 ")")
+    (Newline 101:102 "\n"))
+  (Rule 102:152
+    (Header 102:129
+      (Word 102:107 "alert")
+      (Whitespace 107:108 " ")
+      (Word 108:111 "udp")
+      (Whitespace 111:112 " ")
+      (Group 112:115
+        (Word 112:115 "any"))
+      (Whitespace 115:116 " ")
+      (Group 116:119
+        (Word 116:119 "any"))
+      (Whitespace 119:120 " ")
+      (Word 120:122 "->")
+      (Whitespace 122:123 " ")
+      (Group 123:126
+        (Word 123:126 "any"))
+      (Whitespace 126:127 " ")
+      (Group 127:129
+        (Word 127:129 "53")))
+    (Whitespace 129:130 " ")
+    (LParen 130:131 "(")
+    (Body 131:150
+      (Option 131:143
+        (Keyword 131:134 "msg")
+        (Colon 134:135 ":")
+        (Value 135:142 "\"third\"")
+        (Semicolon 142:143 ";"))
+      (Whitespace 143:144 " ")
+      (Option 144:150
+        (Keyword 144:147 "sid")
+        (Colon 147:148 ":")
+        (Value 148:149 "3")
+        (Semicolon 149:150 ";")))
+    (RParen 150:151 ")")
+    (Whitespace 151:152 " "))
+  (Rule 152:203
+    (Header 152:179
+      (Word 152:157 "alert")
+      (Whitespace 157:158 " ")
+      (Word 158:161 "udp")
+      (Whitespace 161:162 " ")
+      (Group 162:165
+        (Word 162:165 "any"))
+      (Whitespace 165:166 " ")
+      (Group 166:168
+        (Word 166:168 "53"))
+      (Whitespace 168:169 " ")
+      (Word 169:171 "->")
+      (Whitespace 171:172 " ")
+      (Group 172:175
+        (Word 172:175 "any"))
+      (Whitespace 175:176 " ")
+      (Group 176:179
+        (Word 176:179 "any")))
+    (Whitespace 179:180 " ")
+    (LParen 180:181 "(")
+    (Body 181:201
+      (Option 181:194
+        (Keyword 181:184 "msg")
+        (Colon 184:185 ":")
+        (Value 185:193 "\"fourth\"")
+        (Semicolon 193:194 ";"))
+      (Whitespace 194:195 " ")
+      (Option 195:201
+        (Keyword 195:198 "sid")
+        (Colon 198:199 ":")
+        (Value 199:200 "4")
+        (Semicolon 200:201 ";")))
+    (RParen 201:202 ")")
+    (Newline 202:203 "\n"))
+  (EOF 203:203 ""))
+

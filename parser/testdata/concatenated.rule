@@ -1,0 +1,2 @@
+alert tcp any any -> any any (msg:"first"; sid:1;)alert tcp any any -> any any (msg:"second"; sid:2;)
+alert udp any any -> any 53 (msg:"third"; sid:3;) alert udp any 53 -> any any (msg:"fourth"; sid:4;)
