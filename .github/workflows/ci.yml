@@ -38,7 +38,9 @@ jobs:
           version: v2.5.0
           # `config verify` downloads its JSON schema from golangci-lint.run
           # on every run; when that site is slow the job fails before any
-          # linter runs. The config is checked by `golangci-lint run` itself.
+          # linter runs. `golangci-lint run` still rejects unknown linters but
+          # not unknown keys, so run `golangci-lint config verify` locally
+          # after editing .golangci.yml.
           verify: false
 
   fuzz:
