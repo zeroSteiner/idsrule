@@ -16,7 +16,6 @@ jobs:
       fail-fast: false
       matrix:
         go-version: ['1.24.x', '1.25.x']
-        cache: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -47,3 +46,4 @@ jobs:
           go-version: '1.24.x'
           cache: false
       - run: go test ./lexer -run='^$' -fuzz=FuzzLex -fuzztime=10s
+      - run: go test ./parser -run='^$' -fuzz=FuzzParse -fuzztime=10s
