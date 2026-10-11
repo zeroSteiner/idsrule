@@ -77,7 +77,10 @@ type Policy struct {
 
 // DefaultPolicy returns the policy used when none is given: a rev is
 // required and a space must follow every option-ending semicolon. All other
-// fields are zero, which disables the corresponding check.
+// fields are zero: there is no sid range and no placeholder sids, the
+// msg-prefix check is off, msg-duplicate normalises msgs with
+// DefaultNormalizeMsg, continued lines need only be indented consistently
+// within a rule, and the spacing after colons is not checked.
 func DefaultPolicy() Policy {
 	return Policy{
 		RequireRev: true,

@@ -1,0 +1,116 @@
+# Changelog
+
+All notable changes to this module are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this module adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+Before v1 the API may change in any minor release.
+
+## [Unreleased]
+
+## [0.1.0] - 2026-10-11
+
+The first release: a lossless parser for Suricata and Snort 2.9 rule files,
+with rule-aware checks and autofixes built on it. Go 1.24 or later; no
+dependencies outside the standard library.
+
+### Added
+
+- **Root package** `idsrule`, a facade over the packages below: `Parse`,
+  `Lint`, `Check`, `Fix`, `CheckIDs`, `DialectFromFilename`, `NewSIDIndex`,
+  `Options` with `DefaultOptions` and `Validate`, `RuleConfigInvalid`
+  (`config-invalid`, the single error returned for options that do not
+  validate), and aliases for the types callers need (`File`, `Diagnostic`,
+  `Related`, `Severity`, `Span`, `Position`, `TextEdit`, `Dialect`,
+  `Policy`, `StylePolicy`, `Spacing`, `Selection`, `SIDIndex`, `SIDRef`).
+  Runnable examples, including an adapter to the finding type of the
+  pr-validate tool.
+- **Lexer** (`lexer`): a mode-driven tokenizer that keeps every byte, trivia
+  included, in exactly one token, so the token stream reproduces the input.
+  It never fails; its one diagnostic is `syntax-unterminated-string`.
+- **Parser and syntax tree** (`parser`, `cst`): a lossless concrete syntax
+  tree whose nodes tile the source, so `File.Text()` returns the input byte
+  for byte whatever it was, and a recovering recursive-descent parser that
+  never fails: a malformed construct is reported and recovered from at the
+  granularity of a header part, an option or a line, so one broken rule
+  does not take the rules after it down with it. Parsing is
+  dialect-agnostic.
+  Syntax diagnostics: `syntax-bad-header`, `syntax-unbalanced-bracket`,
+  `syntax-missing-open-paren`, `syntax-missing-close-paren`,
+  `syntax-missing-semicolon`, `syntax-empty-option`, `syntax-missing-value`,
+  `syntax-bad-option`, `syntax-trailing-text` and
+  `syntax-unterminated-string`. `cst.Verify` checks the structural
+  invariants of a tree and `cst.Dump` prints one.
+- **Dialect tables** (`dialect`): 347 option keywords as data, 110 in
+  Snort 2.9 and 312 in Suricata (75 in both, 35 only in Snort 2.9, 237 only
+  in Suricata). Each row gives the dialects the keyword exists in, where it
+  is deprecated (44 keywords, all in Suricata) and its successor there,
+  whether and what kind of value it takes, its role, whether it may repeat,
+  and its equivalent in the other dialect. Also the rule actions (8 in
+  Snort 2.9, 7 in Suricata) and header protocols (4 in Snort 2.9, 52 in
+  Suricata) of each dialect, and dialect detection from file names
+  (`*.snort.rule`, `*.suricata.rule`, and their `.rules` spellings).
+- **Value decoders** (`value`): typed decoders for option values, each
+  error carrying a byte offset into the value: content (negation, escapes,
+  `|hex|` blocks), pcre (both of Snort's forms), unsigned integers,
+  integers or byte_extract variables, relational integers and ranges,
+  urilen, quoted strings, identifiers, flow, flowbits, reference, metadata,
+  threshold and detection_filter, base64_decode, fast_pattern, isdataat
+  and comma-separated lists.
+- **Checks** (`check`): a registry of checks, each with an id, a default
+  severity, a style flag, a dialect requirement and a one-line doc; a
+  `Policy` (sid range, placeholder threshold, required rev, msg prefix and
+  normalization, style rules), a `Selection` (enable, disable, style,
+  severity overrides) and a `SIDIndex` that finds duplicate sids across
+  files. The 29 checks:
+  `content-snort3-modifiers`, `continuation-trailing-whitespace`,
+  `dialect-unknown`, `header-invalid-action`, `header-invalid-address`,
+  `header-invalid-port`, `header-invalid-protocol`, `keyword-deprecated`,
+  `keyword-unknown`, `keyword-wrong-dialect`, `modifier-without-content`,
+  `msg-duplicate`, `msg-missing`, `msg-prefix`, `option-duplicate`,
+  `rev-missing`, `sid-duplicate`, `sid-missing`, `sid-out-of-range`,
+  `sid-placeholder-without-msg`, `sticky-buffer-empty`,
+  `style-continuation-indent`, `style-missing-final-newline`,
+  `style-rules-concatenated`, `style-space-after-colon`,
+  `style-space-after-semicolon`, `style-trailing-whitespace`,
+  `value-invalid` and `value-unescaped-quote`. The six `style-*` checks are
+  off by default.
+- **Fix engine** (`fix`, `idsrule.Fix`): `fix.Validate` and `fix.Apply`
+  apply text edits that lie within the source and do not overlap, without
+  modifying the input; `idsrule.Fix` takes diagnostics in order and applies
+  each one's edits only when all of them fit among those already accepted,
+  so conflicting fixes are never half-applied; linting and fixing the
+  result again applies what a pass skipped. Seven checks carry fixes: `content-snort3-modifiers`,
+  `continuation-trailing-whitespace`, `style-missing-final-newline`,
+  `style-rules-concatenated`, `style-space-after-colon`,
+  `style-space-after-semicolon` and `style-trailing-whitespace`.
+- **Tests**: golden fixtures for the parser and every check and fix, fuzz
+  targets `FuzzLex` and `FuzzParse`, scale tests (skipped with `-short`),
+  and corpus tests that run when `IDSRULE_CORPUS` names a directory of rule
+  files. On the reference corpus (64 files, 118 rules) every file parses
+  with no diagnostics and round-trips byte for byte, every keyword is known
+  in its file's dialect, all 1857 option values decode, and fixing every
+  file keeps each rule's msg and sid and leaves nothing fixable.
+
+### Engine-fidelity notes
+
+Where Snort 2.9 and Suricata behave in a way that is easy to get wrong,
+the module follows the engines:
+
+- Options split on an unescaped `;` regardless of quotes: double quotes do
+  not protect a `;`, so `content:"a;b";` ends the content after `a`. Write
+  `\;` instead.
+- The last `)` on a logical line closes the rule; any other `)` is part of
+  an option value.
+- A trailing `\` always continues the line, even when the byte before it
+  is another backslash.
+- Line continuations outside rules are trivia, as both engines splice
+  continued lines before they parse them.
+- Protocols are a fixed table of names per dialect, compared without
+  regard to case; a protocol number is not accepted.
+- Suricata's buffer transforms (such as `url_decode`) and buffer tests
+  (`bsize`, `absent`) apply to the active sticky buffer and must follow
+  one.
+
+[Unreleased]: https://github.com/zeroSteiner/idsrule/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/zeroSteiner/idsrule/releases/tag/v0.1.0

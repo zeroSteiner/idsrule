@@ -30,8 +30,7 @@ func transform(name string) Keyword {
 }
 
 // suricataKeywords are the keywords that exist only in Suricata, following
-// the Suricata 7 keyword index plus the few the brief names from later
-// versions. Values with grammars of their own are KindRaw.
+// the Suricata 7 keyword index plus a few from later versions. Values with grammars of their own are KindRaw.
 var suricataKeywords = []Keyword{
 	// Content modifiers, buffer tests and transforms. A buffer test
 	// (bsize, absent) examines the active sticky buffer itself; a

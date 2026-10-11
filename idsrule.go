@@ -78,7 +78,8 @@ type Options struct {
 	// Checks selects which checks run and how they report.
 	Checks Selection
 	// SIDs, when non-nil, is shared across files so that sid duplicates can
-	// be found across a whole rule set.
+	// be found across a whole rule set. Keep one index per dialect: a Snort
+	// file and its Suricata counterpart carry the same sids by design.
 	SIDs *SIDIndex
 }
 
