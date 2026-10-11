@@ -1,0 +1,4 @@
+# The modifiers span a line continuation, so the finding carries no fix.
+# expect: content-snort3-modifiers error "Snort 3 syntax"
+alert tcp any any -> any any (msg:"a"; content:"x", \
+    nocase; sid:1; rev:1;)

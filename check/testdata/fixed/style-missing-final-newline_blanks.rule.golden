@@ -1,0 +1,6 @@
+# lint: checks=style-missing-final-newline,style-trailing-whitespace fixes=1
+# Blanks that end the file are replaced by the final newline in one pass; the
+# trailing-whitespace finding carries no fix of its own for them.
+# expect: style-trailing-whitespace @+2 warning
+# expect: style-missing-final-newline @+1 warning fix
+alert tcp any any -> any any (msg:"a"; sid:1; rev:1;)

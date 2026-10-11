@@ -145,36 +145,43 @@ func TestLookupKnown(t *testing.T) {
 }
 
 // TestRegisteredSet pins the checks this package registers and their
-// default severities and dialect needs.
+// default severities, dialect needs and style flags.
 func TestRegisteredSet(t *testing.T) {
 	want := []struct {
 		id           string
 		sev          diag.Severity
 		needsDialect bool
+		style        bool
 	}{
-		{"content-snort3-modifiers", diag.SeverityError, false},
-		{"continuation-trailing-whitespace", diag.SeverityWarning, false},
-		{"dialect-unknown", diag.SeverityWarning, false},
-		{"header-invalid-action", diag.SeverityError, true},
-		{"header-invalid-address", diag.SeverityError, false},
-		{"header-invalid-port", diag.SeverityError, false},
-		{"header-invalid-protocol", diag.SeverityError, true},
-		{"keyword-deprecated", diag.SeverityWarning, true},
-		{"keyword-unknown", diag.SeverityWarning, false},
-		{"keyword-wrong-dialect", diag.SeverityError, true},
-		{"modifier-without-content", diag.SeverityError, true},
-		{"msg-duplicate", diag.SeverityError, false},
-		{"msg-missing", diag.SeverityError, false},
-		{"msg-prefix", diag.SeverityWarning, false},
-		{"option-duplicate", diag.SeverityError, false},
-		{"rev-missing", diag.SeverityError, false},
-		{"sid-duplicate", diag.SeverityError, false},
-		{"sid-missing", diag.SeverityError, false},
-		{"sid-out-of-range", diag.SeverityError, false},
-		{"sid-placeholder-without-msg", diag.SeverityError, false},
-		{"sticky-buffer-empty", diag.SeverityWarning, true},
-		{"value-invalid", diag.SeverityError, true},
-		{"value-unescaped-quote", diag.SeverityWarning, true},
+		{"content-snort3-modifiers", diag.SeverityError, false, false},
+		{"continuation-trailing-whitespace", diag.SeverityWarning, false, false},
+		{"dialect-unknown", diag.SeverityWarning, false, false},
+		{"header-invalid-action", diag.SeverityError, true, false},
+		{"header-invalid-address", diag.SeverityError, false, false},
+		{"header-invalid-port", diag.SeverityError, false, false},
+		{"header-invalid-protocol", diag.SeverityError, true, false},
+		{"keyword-deprecated", diag.SeverityWarning, true, false},
+		{"keyword-unknown", diag.SeverityWarning, false, false},
+		{"keyword-wrong-dialect", diag.SeverityError, true, false},
+		{"modifier-without-content", diag.SeverityError, true, false},
+		{"msg-duplicate", diag.SeverityError, false, false},
+		{"msg-missing", diag.SeverityError, false, false},
+		{"msg-prefix", diag.SeverityWarning, false, false},
+		{"option-duplicate", diag.SeverityError, false, false},
+		{"rev-missing", diag.SeverityError, false, false},
+		{"sid-duplicate", diag.SeverityError, false, false},
+		{"sid-missing", diag.SeverityError, false, false},
+		{"sid-out-of-range", diag.SeverityError, false, false},
+		{"sid-placeholder-without-msg", diag.SeverityError, false, false},
+		{"sticky-buffer-empty", diag.SeverityWarning, true, false},
+		{"style-continuation-indent", diag.SeverityWarning, false, true},
+		{"style-missing-final-newline", diag.SeverityWarning, false, true},
+		{"style-rules-concatenated", diag.SeverityWarning, false, true},
+		{"style-space-after-colon", diag.SeverityWarning, false, true},
+		{"style-space-after-semicolon", diag.SeverityWarning, false, true},
+		{"style-trailing-whitespace", diag.SeverityWarning, false, true},
+		{"value-invalid", diag.SeverityError, true, false},
+		{"value-unescaped-quote", diag.SeverityWarning, true, false},
 	}
 	ids := make([]string, len(want))
 	for i, w := range want {
@@ -184,8 +191,8 @@ func TestRegisteredSet(t *testing.T) {
 			t.Errorf("check %q is not registered", w.id)
 			continue
 		}
-		if c.Severity != w.sev || c.NeedsDialect != w.needsDialect || c.Style {
-			t.Errorf("check %q: severity %q needsDialect %v style %v, want %q %v false", w.id, c.Severity, c.NeedsDialect, c.Style, w.sev, w.needsDialect)
+		if c.Severity != w.sev || c.NeedsDialect != w.needsDialect || c.Style != w.style {
+			t.Errorf("check %q: severity %q needsDialect %v style %v, want %q %v %v", w.id, c.Severity, c.NeedsDialect, c.Style, w.sev, w.needsDialect, w.style)
 		}
 	}
 	if got := IDs(); !slices.Equal(got, ids) {

@@ -1,0 +1,5 @@
+# expect: content-snort3-modifiers error "text after the closing quote ", nocase" is Snort 3 syntax" fix
+alert tcp any any -> any any (msg:"a"; content:"x"; nocase; sid:1; rev:1;)
+# expect: content-snort3-modifiers error "text after the closing quote ", depth 5" is Snort 3 syntax" fix
+alert tcp any any -> any any (msg:"b"; content:"y"; depth:5; sid:2; rev:1;)
+alert tcp any any -> any any (msg:"c"; content:"z"; nocase; sid:3; rev:1;)

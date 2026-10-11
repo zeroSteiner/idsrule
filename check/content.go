@@ -1,9 +1,14 @@
 package check
 
 import (
+	"regexp"
+	"strings"
+
+	"github.com/zeroSteiner/idsrule/cst"
 	"github.com/zeroSteiner/idsrule/diag"
 	"github.com/zeroSteiner/idsrule/dialect"
 	"github.com/zeroSteiner/idsrule/source"
+	"github.com/zeroSteiner/idsrule/token"
 	"github.com/zeroSteiner/idsrule/value"
 )
 
@@ -48,6 +53,58 @@ func closingQuote(s string) int {
 	return -1
 }
 
+// snort3Modifier matches one Snort 3 modifier as written after a content
+// pattern: a bare name such as "nocase", or a name and its argument such
+// as "depth 16".
+var snort3Modifier = regexp.MustCompile(`^[a-z_]+( [^,;"]+)?$`)
+
+// snort3Rewrite returns the Snort 2 options that trailing, the text after
+// the closing quote of a content value, stands for: ", nocase, depth 5"
+// becomes "; nocase; depth:5", spaced as style demands (no space after
+// the semicolon when it forbids one, a space after the colon when it
+// requires one). It reports false when the text does not start with a
+// comma or when a piece between commas is not a modifier snort3Modifier
+// recognizes.
+func snort3Rewrite(trailing string, style StylePolicy) (string, bool) {
+	pieces := strings.Split(trailing, ",")
+	if strings.Trim(pieces[0], " \t") != "" {
+		return "", false
+	}
+	semicolon, colon := "; ", ":"
+	if style.SpaceAfterSemicolon == SpacingForbid {
+		semicolon = ";"
+	}
+	if style.SpaceAfterColon == SpacingRequire {
+		colon = ": "
+	}
+	var b strings.Builder
+	for _, piece := range pieces[1:] {
+		piece = strings.Trim(piece, " \t")
+		if !snort3Modifier.MatchString(piece) {
+			return "", false
+		}
+		name, arg, _ := strings.Cut(piece, " ")
+		b.WriteString(semicolon)
+		b.WriteString(name)
+		if arg != "" {
+			b.WriteString(colon)
+			b.WriteString(arg)
+		}
+	}
+	return b.String(), true
+}
+
+// spansContinuation reports whether a LineContinuation token of o's value
+// starts at or after offset start.
+func spansContinuation(o *cst.Option, start int) bool {
+	for _, t := range o.Value {
+		if t.Kind == token.LineContinuation && t.Start >= start {
+			return true
+		}
+	}
+	return false
+}
+
 func checkContentSnort3Modifiers(ctx *Context) {
 	for _, r := range ctx.Tree.Rules() {
 		for _, o := range r.Options() {
@@ -65,7 +122,13 @@ func checkContentSnort3Modifiers(ctx *Context) {
 				continue
 			}
 			span := source.Span{Start: at(q + 1), End: o.ValueSpan().End}
-			ctx.Report(span, "text after the closing quote %q is Snort 3 syntax; write it as separate options", c.Trailing)
+			d := ctx.Report(span, "text after the closing quote %q is Snort 3 syntax; write it as separate options", c.Trailing)
+			// The fix rewrites everything after the closing quote as
+			// options of their own, unless a line continuation is in the
+			// way: the rewrite would have to drop or move it.
+			if text, ok := snort3Rewrite(c.Trailing, ctx.Policy.Style); ok && !spansContinuation(o, span.Start) {
+				d.Edits = []source.TextEdit{{Span: span, NewText: text}}
+			}
 		}
 	}
 }

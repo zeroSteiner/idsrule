@@ -1,0 +1,7 @@
+# A lone ")" in column 0 closes the rule without counting as a continuation line.
+alert tcp any any -> any any ( \
+    msg:"a"; \
+    sid:1; rev:1; \
+)
+alert tcp any any -> any any (msg:"b"; sid:2; rev:1; \
+)

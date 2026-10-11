@@ -27,6 +27,7 @@ func checkContinuationTrailingWhitespace(ctx *Context) {
 			continue
 		}
 		span := source.Span{Start: t.Start + 1, End: t.Start + len(lit)}
-		ctx.Report(span, "whitespace between the line continuation '\\' and the end of the line")
+		d := ctx.Report(span, "whitespace between the line continuation '\\' and the end of the line")
+		d.Edits = []source.TextEdit{{Span: span}}
 	}
 }

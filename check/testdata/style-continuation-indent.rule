@@ -1,0 +1,15 @@
+# The first continuation line sets the indent of the rule; a line that holds
+# nothing but the closing parenthesis is exempt, indented or not.
+alert tcp any any -> any any ( \
+    msg:"consistent"; \
+    sid:1; rev:1; \
+)
+# expect: style-continuation-indent @+3 warning "indented with "  ", not "    " like the rule's first continuation line"
+alert tcp any any -> any any ( \
+    msg:"inconsistent"; \
+  sid:2; rev:1; \
+    )
+# expect: style-continuation-indent @+3 warning "indented with "", not "\t""
+alert tcp any any -> any any ( \
+	msg:"tab then none"; \
+sid:3; rev:1;)

@@ -1,0 +1,11 @@
+# Blanks before a newline or the end of the file: after a rule, in a comment,
+# on a blank line. Those after a continuation backslash are another check.
+alert tcp any any -> any any (msg:"clean"; sid:1; rev:1;)
+# expect: style-trailing-whitespace warning "trailing whitespace" fix
+alert tcp any any -> any any (msg:"tail"; sid:2; rev:1;)
+# expect: style-trailing-whitespace warning fix
+# a comment
+# expect: style-trailing-whitespace warning fix
+
+alert tcp any any -> any any ( \ 
+    msg:"continuation"; sid:3; rev:1;)

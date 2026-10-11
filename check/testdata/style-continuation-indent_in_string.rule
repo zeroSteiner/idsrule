@@ -1,0 +1,23 @@
+# A continuation inside a quoted value is not a continuation line: the
+# whitespace after it belongs to the value. It neither sets the indent of the
+# rule nor gets reported.
+alert tcp any any -> any any (msg:"first"; content:"foo \
+      bar"; \
+    sid:1; \
+    rev:1;)
+alert tcp any any -> any any ( \
+    msg:"middle"; \
+    content:"foo \
+  bar"; \
+    sid:2; rev:1;)
+# expect: style-continuation-indent @+5 warning "indented with "  ", not "    ""
+alert tcp any any -> any any ( \
+    msg:"one finding"; \
+    content:"foo \
+  bar"; \
+  sid:3; rev:1;)
+# An escaped quote does not close the string.
+alert tcp any any -> any any ( \
+    msg:"escaped \"quote\" \
+  still open"; \
+    sid:4; rev:1;)

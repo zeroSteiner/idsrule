@@ -1,4 +1,4 @@
-# expect: continuation-trailing-whitespace warning "whitespace between the line continuation"
+# expect: continuation-trailing-whitespace warning "whitespace between the line continuation" fix
 alert tcp any any -> any any ( \ 
     msg:"a"; sid:1; rev:1; \
 )

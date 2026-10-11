@@ -1,0 +1,7 @@
+# lint: space-after-semicolon=forbid
+alert tcp any any -> any any (msg:"ok";content:"x";nocase;sid:1;rev:1;)
+# expect: style-space-after-semicolon warning "whitespace after ';' where none is allowed" fix
+alert tcp any any -> any any (msg:"one"; sid:2;rev:1;)
+alert tcp any any -> any any (msg:"exempt"; \
+    sid:3;rev:1; \
+)

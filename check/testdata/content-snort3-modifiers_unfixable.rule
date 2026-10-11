@@ -1,0 +1,10 @@
+# Text after the closing quote that is not a comma-separated list of lower-case
+# modifiers is reported but not fixed.
+# expect: content-snort3-modifiers error
+alert tcp any any -> any any (msg:"a"; content:"x", NOCASE; sid:1; rev:1;)
+# expect: content-snort3-modifiers error
+alert tcp any any -> any any (msg:"b"; content:"y" nocase; sid:2; rev:1;)
+# expect: content-snort3-modifiers error
+alert tcp any any -> any any (msg:"c"; content:"z", depth 5,; sid:3; rev:1;)
+# expect: content-snort3-modifiers error
+alert tcp any any -> any any (msg:"d"; content:"w", nocase "x"; sid:4; rev:1;)

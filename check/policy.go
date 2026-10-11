@@ -19,7 +19,7 @@ type Spacing uint8
 const (
 	// SpacingAny accepts whitespace or its absence.
 	SpacingAny Spacing = iota
-	// SpacingRequire demands at least one whitespace character.
+	// SpacingRequire demands exactly one space.
 	SpacingRequire
 	// SpacingForbid demands that no whitespace be present.
 	SpacingForbid

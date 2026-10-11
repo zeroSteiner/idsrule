@@ -1,0 +1,12 @@
+# lint: continuation-indent="  "
+# With the policy set, every continuation line is held to it, the first one included.
+alert tcp any any -> any any ( \
+  msg:"two spaces"; \
+  sid:1; rev:1; \
+)
+# expect: style-continuation-indent @+3 warning "indented with "    ", not "  " as the policy demands"
+# expect: style-continuation-indent @+3 warning
+alert tcp any any -> any any ( \
+    msg:"four spaces"; \
+    sid:2; rev:1; \
+)

@@ -1,0 +1,7 @@
+# lint: checks=style-continuation-indent
+# expect: style-continuation-indent @+4
+alert tcp any any -> any any ( \
+  msg:"a"; content:"a\\
+" \
+      ; \
+  sid:12900008; rev:1;)

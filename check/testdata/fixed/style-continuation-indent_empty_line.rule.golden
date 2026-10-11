@@ -1,0 +1,12 @@
+# lint: checks=style-continuation-indent,style-trailing-whitespace
+# A continuation followed by an empty line, blank or not, or by the end of
+# the file holds no option line and is not an indent finding.
+# expect: style-trailing-whitespace @+3 warning fix
+alert tcp any any -> any any ( \
+  msg:"a"; sid:1; rev:1;) \
+
+alert tcp any any -> any any ( \
+  msg:"b"; sid:2; rev:1;) \
+
+alert tcp any any -> any any ( \
+  msg:"c"; sid:3; rev:1;) \

@@ -1,0 +1,11 @@
+# lint: space-after-colon=require
+alert tcp any any -> any any (msg: "ok"; content: "x"; nocase; sid: 1; rev: 1;)
+# expect: style-space-after-colon warning "missing space after ':'" fix
+alert tcp any any -> any any (msg:"none"; sid: 2; rev: 1;)
+# expect: style-space-after-colon warning ""  " after ':' where a single space is expected" fix
+alert tcp any any -> any any (msg:  "two"; sid: 3; rev: 1;)
+# expect: style-space-after-colon warning ""\t" after ':'" fix
+alert tcp any any -> any any (msg:	"tab"; sid: 4; rev: 1;)
+# A value that starts on the next line is exempt.
+alert tcp any any -> any any (msg:\
+    "continued"; sid: 5; rev: 1;)

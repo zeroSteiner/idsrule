@@ -1,0 +1,5 @@
+# lint: checks=style-missing-final-newline,style-trailing-whitespace fixes=1
+# expect: style-trailing-whitespace @+3 warning
+# expect: style-missing-final-newline @+2 warning fix
+alert tcp any any -> any any (msg:"a"; sid:1; rev:1;)
+# a comment ends the file	

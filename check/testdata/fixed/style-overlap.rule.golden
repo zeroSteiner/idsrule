@@ -1,0 +1,8 @@
+# lint: checks=style-rules-concatenated,continuation-trailing-whitespace fixes=1
+# The two fixes overlap: the newline that splits the rules replaces the whole
+# tail, blanks after the backslash included. The first pass applies one of
+# them and skips the other; nothing is left for a second pass.
+# expect: style-rules-concatenated @+2 warning fix
+# expect: continuation-trailing-whitespace @+1 warning fix
+alert tcp any any -> any any (msg:"a"; sid:1; rev:1;)
+alert tcp any any -> any any (msg:"b"; sid:2; rev:1;)

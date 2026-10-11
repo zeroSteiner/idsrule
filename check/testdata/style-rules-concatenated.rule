@@ -1,0 +1,5 @@
+# expect: style-rules-concatenated warning "another rule follows on the same line" fix
+alert tcp any any -> any any (msg:"a"; sid:1; rev:1;)alert tcp any any -> any any (msg:"b"; sid:2; rev:1;)
+# expect: style-rules-concatenated warning fix
+alert tcp any any -> any any (msg:"c"; sid:3; rev:1;) alert tcp any any -> any any (msg:"d"; sid:4; rev:1;)
+alert tcp any any -> any any (msg:"e"; sid:5; rev:1;)
