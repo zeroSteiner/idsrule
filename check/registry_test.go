@@ -153,6 +153,7 @@ func TestRegisteredSet(t *testing.T) {
 		needsDialect bool
 		style        bool
 	}{
+		{"content-depth-too-short", diag.SeverityError, false, false},
 		{"content-snort3-modifiers", diag.SeverityError, false, false},
 		{"continuation-trailing-whitespace", diag.SeverityWarning, false, false},
 		{"dialect-unknown", diag.SeverityWarning, false, false},

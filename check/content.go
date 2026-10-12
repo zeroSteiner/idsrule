@@ -33,6 +33,12 @@ func init() {
 		Doc:          "a sticky buffer is followed by another sticky buffer or the end of the rule with no payload match or buffer test in between (a transform alone does not use it)",
 		Run:          checkStickyBufferEmpty,
 	})
+	Register(Check{
+		ID:       "content-depth-too-short",
+		Severity: diag.SeverityError,
+		Doc:      "a depth or within is smaller than the content it modifies, so it can never match and the engines reject the rule",
+		Run:      checkContentDepthTooShort,
+	})
 }
 
 // closingQuote returns the offset of the quote that closes the pattern of
@@ -190,6 +196,54 @@ func checkStickyBufferEmpty(ctx *Context) {
 			}
 			if empty {
 				ctx.Report(o.Span(), "sticky buffer %q has no content, pcre or buffer test after it", o.Name())
+			}
+		}
+	}
+}
+
+// windowModifiers are the content modifiers that bound the bytes a
+// content may match in: a match must fit in their value.
+var windowModifiers = map[string]bool{"depth": true, "within": true}
+
+// maxQuotedContent is how much of a content value a message quotes.
+const maxQuotedContent = 40
+
+func checkContentDepthTooShort(ctx *Context) {
+	for _, r := range ctx.Tree.Rules() {
+		// pattern is the decoded pattern of the latest content, which a
+		// depth or within applies to whatever options come between, as
+		// both engines resolve it; nil when there is none or it does not
+		// decode. protected_content resets it: its size comes from its
+		// length option, not its value.
+		var pattern []byte
+		var content string
+		for _, o := range r.Options() {
+			k, ok := ctx.Keyword(o)
+			if !ok {
+				continue
+			}
+			switch {
+			case k.Role == dialect.RolePayload && k.Kind == dialect.KindContent:
+				pattern = nil
+				if !o.HasValue() {
+					continue
+				}
+				logical, _ := o.LogicalValue()
+				if c, err := value.ParseContent(logical); err == nil {
+					pattern, content = c.Pattern, logical
+				}
+			case k.Name == "protected_content":
+				pattern = nil
+			case windowModifiers[k.Name] && pattern != nil && o.HasValue():
+				logical, _ := o.LogicalValue()
+				v, err := value.ParseIntOrVar(logical)
+				if err != nil || v.Var != "" || v.Value >= int64(len(pattern)) {
+					continue
+				}
+				if len(content) > maxQuotedContent {
+					content = content[:maxQuotedContent] + `..."`
+				}
+				ctx.Report(o.Span(), "%s:%d is shorter than the %d-byte content %s, so it can never match; the engines reject the rule", k.Name, v.Value, len(pattern), content)
 			}
 		}
 	}
