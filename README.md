@@ -271,6 +271,7 @@ selected.
 
 | Check | Severity | Style | Needs dialect | Fix | Reports |
 |---|---|---|---|---|---|
+| `content-depth-too-short` | error | no | no | no | a `depth` or `within` is smaller than the decoded content it modifies, so it can never match and the engines reject the rule |
 | `content-snort3-modifiers` | error | no | no | yes | a content value carries Snort 3 style modifiers after its closing quote |
 | `continuation-trailing-whitespace` | warning | no | no | yes | spaces or tabs follow a line continuation's backslash |
 | `dialect-unknown` | warning | no | no | no | the dialect is unknown, so the checks that need one were skipped |

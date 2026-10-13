@@ -1,0 +1,11 @@
+# lint: dialect=suricata
+alert http any any -> any any (msg:"fits"; http.uri; content:"/pa"; depth:3; sid:1; rev:1;)
+# expect: content-depth-too-short error "depth:2 is shorter than the 3-byte content "/pa""
+alert http any any -> any any (msg:"short"; http.uri; content:"/pa"; depth:2; sid:2; rev:1;)
+# A variable is only known at match time.
+alert tcp any any -> any any (msg:"var"; content:"ab"; byte_extract:1,0,len; content:"cdef"; within:len; sid:3; rev:1;)
+# expect: content-depth-too-short error "within:3 is shorter than the 4-byte content"
+alert http any any -> any any (msg:"within"; http.uri; content:"/a"; content:"bcde"; distance:0; within:3; sid:4; rev:1;)
+# expect: content-depth-too-short error "depth:2 is shorter than the 6-byte content"
+alert http any any -> any any (msg:"sticky between"; content:"abcdef"; http.uri; depth:2; sid:5; rev:1;)
+alert http any any -> any any (msg:"startswith"; http.uri; content:"/abc"; startswith; sid:6; rev:1;)

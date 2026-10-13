@@ -1,0 +1,36 @@
+# lint: dialect=snort2
+# The Langflow anchor is 21 bytes: 21 fits, 20 and less can never match.
+alert tcp any any -> any any (msg:"exact"; content:"/api/v1/validate/code"; depth:21; http_uri; sid:1; rev:1;)
+alert tcp any any -> any any (msg:"window"; content:"/x"; depth:512; sid:2; rev:1;)
+# expect: content-depth-too-short error "depth:20 is shorter than the 21-byte content "/api/v1/validate/code", so it can never match; the engines reject the rule"
+alert tcp any any -> any any (msg:"short"; content:"/api/v1/validate/code"; depth:20; http_uri; sid:3; rev:1;)
+# expect: content-depth-too-short error "within:3 is shorter than the 4-byte content"
+alert tcp any any -> any any (msg:"within"; content:"a"; content:"bcde"; distance:0; within:3; sid:4; rev:1;)
+# Escapes and hex bytes count once each: "a\;b|0d 0a|" is 5 bytes.
+alert tcp any any -> any any (msg:"decoded fits"; content:"a\;b|0d 0a|"; depth:5; sid:5; rev:1;)
+# expect: content-depth-too-short error "depth:4 is shorter than the 5-byte content"
+alert tcp any any -> any any (msg:"decoded short"; content:"a\;b|0d 0a|"; depth:4; sid:6; rev:1;)
+# expect: content-depth-too-short error "depth:2 is shorter than the 3-byte content !"abc""
+alert tcp any any -> any any (msg:"negated"; content:!"abc"; depth:2; sid:7; rev:1;)
+# The modifier applies to the latest content only.
+alert tcp any any -> any any (msg:"latest"; content:"abcdef"; content:"ab"; depth:2; sid:8; rev:1;)
+# As in both engines, a depth after a pcre or another payload keyword
+# still applies to the latest content.
+# expect: content-depth-too-short error "depth:2 is shorter than the 6-byte content"
+alert tcp any any -> any any (msg:"pcre"; content:"abcdef"; pcre:"/x/"; depth:2; sid:9; rev:1;)
+# expect: content-depth-too-short error "within:2 is shorter than the 6-byte content"
+alert tcp any any -> any any (msg:"isdataat"; content:"abcdef"; isdataat:1,relative; within:2; sid:11; rev:1;)
+# expect: content-depth-too-short error "depth:2 is shorter than the 6-byte content"
+alert tcp any any -> any any (msg:"uricontent"; uricontent:"abcdef"; depth:2; sid:12; rev:1;)
+# protected_content takes its size from length, not its value.
+alert tcp any any -> any any (msg:"protected"; content:"abcdef"; protected_content:"aa"; length:2; hash:md5; depth:2; sid:13; rev:1;)
+# offset does not count: depth is measured from it.
+alert tcp any any -> any any (msg:"offset"; content:"abcd"; offset:10; depth:4; sid:14; rev:1;)
+# Long contents are quoted in part.
+# expect: content-depth-too-short error "depth:1 is shorter than the 48-byte content "|00 01 02 03 04 05 06 07 08 09 0a 0b 0c..."
+alert tcp any any -> any any (msg:"long"; content:"|00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f 20 21 22 23 24 25 26 27 28 29 2a 2b 2c 2d 2e 2f|"; depth:1; sid:15; rev:1;)
+# expect: content-depth-too-short @+3 error "depth:3 is shorter than the 4-byte content"
+alert tcp any any -> any any ( \
+    msg:"multi-line"; \
+    content:"/tts"; depth:3; http_uri; \
+    sid:10; rev:1;)

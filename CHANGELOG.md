@@ -8,6 +8,15 @@ Before v1 the API may change in any minor release.
 
 ## [Unreleased]
 
+### Added
+
+- `content-depth-too-short` check (error): a `depth` or `within` smaller
+  than the content it modifies, measured on the decoded pattern (escapes
+  and `|hex|` bytes count once each), so it can never match; Suricata
+  drops such a rule and Snort 2.9 refuses to start. As in both engines, the
+  modifier applies to the latest content whatever options come between.
+  Values given as a variable are skipped.
+
 ## [0.1.0] - 2026-10-11
 
 The first release: a lossless parser for Suricata and Snort 2.9 rule files,
