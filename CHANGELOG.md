@@ -8,6 +8,14 @@ Before v1 the API may change in any minor release.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-30
+
+Suricata 8 support. The tables now cover every keyword Suricata 7.0 and
+8.0 register, rules can be held to one release with `Options.Version`,
+the parser reads the Suricata 8 header syntax, and `Policy.Firewall`
+covers firewall rule files. This release has breaking changes, listed
+first.
+
 ### Breaking changes
 
 - The new `keyword-version` check (error) is on by default. Even with no
@@ -15,6 +23,11 @@ Before v1 the API may change in any minor release.
   the tables describe accepts: `http2.header`, gone since Suricata 7.0.
   It also warns about `ssh.protoversion`, `ssh.softwareversion`, `luajit`
   and `mqtt.connack.return_code`, which Suricata 8.0 no longer accepts.
+- The new `content-md5-invalid` check (error) is on by default. A content
+  in `ja3.hash`, `ja3s.hash`, `ssh.hassh`, `ssh.hassh.server` or
+  `quic.cyu.hash` that is not 32 bytes is an error, as Suricata 7 and 8
+  refuse the rule. One with a byte that is not a hex digit is a warning
+  (an error with the version set to 8.0).
 - The keywords `ip.hdr`, `krb5.weak_encryption` and
   `mqtt.connack.reason_code` are gone from the Suricata table: no Suricata
   release has them, so rules that use them are now `keyword-unknown`.
@@ -34,26 +47,9 @@ Before v1 the API may change in any minor release.
 - `dialect.KindRaw` moved up by four: `dialect.KindDirection`,
   `KindTos`, `KindQuotedUint` and `KindUintEnum` are declared before it.
   Code that stored `ValueKind` numbers must re-map them.
-- `value-invalid` holds integer values to the dialect and release. It now
-  reports an error for:
-  - Suricata's integer syntax in Snort 2.9 (hex numbers, size units,
-    negated ranges, bitmask tests), which `ParseRelInt` accepted for
-    every dialect;
-  - Suricata 8's integer syntax when the version is 7.0;
-  - `threshold: type backoff` outside Suricata 8.
 - `value.RelInt` gains `Forms`, so a `RelInt` literal compared with
   `==` must set it. `RelInt.A` and `RelInt.B` are `uint64`, not `int64`,
-  because Suricata reads integers up to 64 bits (`bsize:0xffffffffffffffff`
-  used to be "number too large").
-- Suricata reads `window`, `fragoffset` and `tcp.window` with parsers of
-  their own, which know only plain decimal numbers. So `value-invalid`
-  rejects Suricata's integer syntax (hex, units, negated ranges,
-  bitmasks) on keywords with no `Keyword.Bits`, as it does in Snort 2.9.
-- `value-invalid` reports `multiplier` in a `threshold` outside Suricata
-  8, whatever the type (`value.Threshold` gains `HasMultiplier`). It also
-  reports a quoted `id`, `icmp_id` or `icmp_seq` in Snort 2.9.
-- A `KindUintEnum` name must be a letter or `_` followed by letters,
-  digits and `_`, so `ntp.mode:-1` is an error.
+  because Suricata reads integers up to 64 bits.
 - In Suricata, `value-invalid` now applies the checks of Suricata's
   integer parser to the keywords it reads with that parser (those whose
   `Keyword.Bits` is set):
@@ -65,9 +61,9 @@ Before v1 the API may change in any minor release.
     (`dsize:<0`, `itype:>255`).
   Snort 2.9's ranges include their bounds, so its rules are not held to
   these checks.
-- `dns.opcode`, `ftp.dynamic_port` and `rfb.secresult` are `Repeatable`,
-  since Suricata takes several conditions on one field, so
-  `option-duplicate` no longer reports them.
+- `dns.opcode` and `rfb.secresult` are `Repeatable`, since Suricata takes
+  several conditions on one field, so `option-duplicate` no longer
+  reports them.
 - `tos` is `KindTos`, the `[!]N` or `[!]xHH` form both engines read, not
   `KindRelInt`, so `tos:<5` is now an error. `id`, `icmp_id` and
   `icmp_seq` are `KindQuotedUint`, and `rfb.secresult` is `KindUintEnum`.
@@ -168,15 +164,19 @@ Before v1 the API may change in any minor release.
 - `threshold: type backoff` (Suricata 8). `multiplier` takes the place
   of `seconds`, and `ParseThreshold` enforces Suricata's rules: the
   multiplier is 2 to 65535, the count 1 to 65535, the track `by_flow`,
-  and `seconds` is not allowed. `value.Threshold` gains `Multiplier`.
+  and `seconds` is not allowed. Suricata 8 also reads `multiplier` with
+  the other types. `value.Threshold` gains `Multiplier` and
+  `HasMultiplier`. Snort 2.9, and Suricata with the version set to 7.0,
+  still reject both.
   This was the most visible gap: 44 of the rules Suricata 8.0.8 ships
   failed `value-invalid`.
 - `tos:x10`, Suricata's hex form (`value.ParseTos`, `KindTos`), and quoted
   numbers in `id:"123"`, `icmp_id` and `icmp_seq`
-  (`value.ParseQuotedUint`, `KindQuotedUint`).
+  (`value.ParseQuotedUint`, `KindQuotedUint`). Quoted numbers stay an
+  error in Snort 2.9.
 - `KindUintEnum` and `value.ParseUintEnum`: a Suricata 8 integer that may
-  be given by name, `rfb.secresult:!fail`. Suricata 7 reads only the
-  name.
+  be given by name, `rfb.secresult:!fail`. A name is a letter or `_`
+  followed by letters, digits and `_`. Suricata 7 reads only the name.
 - `value.RelIntForm`, `RelInt.Forms` and `RelInt.Suricata7` say which
   integer forms a value uses, and whether Suricata 7 reads them.
 - `content-md5-invalid` check (error). It reports a content in an MD5
@@ -210,12 +210,6 @@ Before v1 the API may change in any minor release.
   parser reads a keyword's value into. It is set on every keyword that
   parser reads (`dsize`, `itype`, `bsize`, `filesize`, the new `enip.*`
   numbers, ...).
-- `content-depth-too-short` check (error): a `depth` or `within` smaller
-  than the content it modifies, measured on the decoded pattern (escapes
-  and `|hex|` bytes count once each), so it can never match; Suricata
-  drops such a rule and Snort 2.9 refuses to start. As in both engines, the
-  modifier applies to the latest content whatever options come between.
-  Values given as a variable are skipped.
 
 ### Fixed
 
@@ -229,9 +223,25 @@ Before v1 the API may change in any minor release.
   `3MiB`), negated ranges (`!1-6`) and bitmask tests (`&0xc0=0x80`,
   `&0x40!=0`). It reports a bitmask test whose value has bits outside its
   mask, which Suricata rejects as never matching. `value.RelInt` gains the
-  operators `!-`, `!<>`, `&=` and `&!=`. Snort 2.9 reads none of these
-  forms, and the keywords both dialects share now accept them in Snort 2.9
-  rules too.
+  operators `!-`, `!<>`, `&=` and `&!=`.
+  - The forms are accepted only on keywords that Suricata reads with its
+    integer parser (`Keyword.Bits`). `window`, `fragoffset` and
+    `tcp.window` have parsers of their own and still take plain decimal
+    numbers.
+  - Snort 2.9 reads none of these forms, and Suricata 7 reads only kb, mb
+    and gb on a plain number. Both still reject the rest, and the message
+    now names the form.
+
+## [0.2.0] - 2026-10-13
+
+### Added
+
+- `content-depth-too-short` check (error): a `depth` or `within` smaller
+  than the content it modifies, measured on the decoded pattern (escapes
+  and `|hex|` bytes count once each), so it can never match; Suricata
+  drops such a rule and Snort 2.9 refuses to start. As in both engines, the
+  modifier applies to the latest content whatever options come between.
+  Values given as a variable are skipped.
 
 ## [0.1.0] - 2026-10-11
 
@@ -337,5 +347,7 @@ the module follows the engines:
   (`bsize`, `absent`) apply to the active sticky buffer and must follow
   one.
 
-[Unreleased]: https://github.com/zeroSteiner/idsrule/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/zeroSteiner/idsrule/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/zeroSteiner/idsrule/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/zeroSteiner/idsrule/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/zeroSteiner/idsrule/releases/tag/v0.1.0
