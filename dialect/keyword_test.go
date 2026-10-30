@@ -56,8 +56,11 @@ func TestValueKindString(t *testing.T) {
 		{dialect.KindIsDataAt, "isdataat", true},
 		{dialect.KindCSV, "csv", true},
 		{dialect.KindDirection, "direction", true},
+		{dialect.KindTos, "tos", true},
+		{dialect.KindQuotedUint, "quoted_uint", true},
+		{dialect.KindUintEnum, "uint_enum", true},
 		{dialect.KindRaw, "raw", true},
-		{dialect.KindRaw + 1, "ValueKind(20)", false},
+		{dialect.KindRaw + 1, "ValueKind(23)", false},
 		{dialect.ValueKind(255), "ValueKind(255)", false},
 	}
 	seen := make(map[string]bool)

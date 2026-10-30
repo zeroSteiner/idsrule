@@ -272,6 +272,7 @@ selected.
 | Check | Severity | Style | Needs dialect | Fix | Reports |
 |---|---|---|---|---|---|
 | `content-depth-too-short` | error | no | no | no | a `depth` or `within` is smaller than the decoded content it modifies, so it can never match and the engines reject the rule |
+| `content-md5-invalid` | error | no | yes | no | a content in a Suricata MD5 buffer (ja3.hash, ja3s.hash, ssh.hassh, ssh.hassh.server, quic.cyu.hash) is not 32 bytes, which Suricata refuses, or not all hex digits, which never matches and which Suricata 8 refuses (a warning before 8.0 or with no release set) |
 | `content-snort3-modifiers` | error | no | no | yes | a content value carries Snort 3 style modifiers after its closing quote |
 | `continuation-trailing-whitespace` | warning | no | no | yes | spaces or tabs follow a line continuation's backslash |
 | `dialect-unknown` | warning | no | no | no | the dialect is unknown, so the checks that need one were skipped |

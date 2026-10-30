@@ -154,6 +154,7 @@ func TestRegisteredSet(t *testing.T) {
 		style        bool
 	}{
 		{"content-depth-too-short", diag.SeverityError, false, false},
+		{"content-md5-invalid", diag.SeverityError, true, false},
 		{"content-snort3-modifiers", diag.SeverityError, false, false},
 		{"continuation-trailing-whitespace", diag.SeverityWarning, false, false},
 		{"dialect-unknown", diag.SeverityWarning, false, false},

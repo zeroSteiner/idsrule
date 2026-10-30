@@ -1,0 +1,14 @@
+# lint: dialect=suricata version=7
+alert tcp any any -> any any (msg:"a"; dsize:10kb; sid:1; rev:1;)
+alert http any any -> any any (msg:"b"; filesize:=1mb; sid:2; rev:1;)
+alert tcp any any -> any any (msg:"c"; dsize:1-5; sid:3; rev:1;)
+# expect: value-invalid error "dsize: a size unit on a comparison or a range requires suricata 8.0 or later"
+alert tcp any any -> any any (msg:"d"; dsize:>1kb; sid:4; rev:1;)
+# expect: value-invalid error "filesize: a kib, mib or gib unit requires suricata 8.0 or later"
+alert http any any -> any any (msg:"e"; filesize:10mib; sid:5; rev:1;)
+# expect: value-invalid error "dsize: a hex number requires suricata 8.0 or later"
+alert tcp any any -> any any (msg:"f"; dsize:0x10; sid:6; rev:1;)
+# expect: value-invalid error "itype: a negated range requires suricata 8.0 or later"
+alert icmp any any -> any any (msg:"g"; itype:!1-5; sid:7; rev:1;)
+# expect: value-invalid error "dsize: a bitmask test requires suricata 8.0 or later"
+alert tcp any any -> any any (msg:"h"; dsize:&0xf0=0x10; sid:8; rev:1;)

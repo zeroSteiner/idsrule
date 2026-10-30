@@ -74,6 +74,12 @@ func (c *Context) ValueSpanAt(o *cst.Option, logicalOff int) source.Span {
 	return source.Span{Start: start, End: min(start+1, vs.End)}
 }
 
+// at reports whether the context names release v of the dialect or a
+// later one. It is false for AnyVersion.
+func (c *Context) at(v dialect.Version) bool {
+	return c.Version != dialect.AnyVersion && c.Version >= v
+}
+
 // before reports whether the context names a release of the dialect
 // earlier than v. It is false for AnyVersion.
 func (c *Context) before(v dialect.Version) bool {

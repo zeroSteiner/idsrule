@@ -245,7 +245,7 @@ var suricataKeywords = []Keyword{
 	// RFB.
 	sticky("rfb.name", ""),
 	appLayer("rfb.sectype", KindRaw),
-	appLayer("rfb.secresult", KindIdent),
+	appLayer("rfb.secresult", KindUintEnum),
 
 	// IKE.
 	sticky("ike.init_spi", ""),

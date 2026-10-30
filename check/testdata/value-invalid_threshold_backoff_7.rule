@@ -1,0 +1,3 @@
+# lint: dialect=suricata version=7
+# expect: value-invalid error "threshold: type backoff requires suricata 8.0 or later"
+alert tcp any any -> any any (msg:"a"; threshold:type backoff, track by_flow, count 1, multiplier 10; sid:1; rev:1;)

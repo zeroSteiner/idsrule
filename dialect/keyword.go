@@ -86,6 +86,16 @@ const (
 	// KindDirection is the direction a Suricata 8 sticky buffer may name,
 	// to_client or to_server: file.data:to_client.
 	KindDirection
+	// KindTos is a tos value: an optional '!' and a number up to 255,
+	// decimal or, as Suricata writes it, 'x' and hex digits: tos:!x10.
+	KindTos
+	// KindQuotedUint is an unsigned decimal integer, which Suricata also
+	// reads in double quotes: id:"123".
+	KindQuotedUint
+	// KindUintEnum is a Suricata 8 integer that may also be given by name:
+	// a KindRelInt value, or a name with an optional '!':
+	// rfb.secresult:!fail, ntp.mode:client.
+	KindUintEnum
 	// KindRaw is a value whose grammar is not decoded: anything is accepted.
 	KindRaw
 )
@@ -132,6 +142,12 @@ func (k ValueKind) String() string {
 		return "csv"
 	case KindDirection:
 		return "direction"
+	case KindTos:
+		return "tos"
+	case KindQuotedUint:
+		return "quoted_uint"
+	case KindUintEnum:
+		return "uint_enum"
 	case KindRaw:
 		return "raw"
 	}

@@ -1,0 +1,3 @@
+# lint: dialect=snort2
+# expect: value-invalid error "threshold: snort2 has no type backoff"
+alert tcp any any -> any any (msg:"a"; threshold:type backoff, track by_flow, count 1, multiplier 10; sid:1; rev:1;)

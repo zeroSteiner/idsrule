@@ -29,9 +29,21 @@ Before v1 the API may change in any minor release.
 - A sticky buffer may take a value: the table invariant that a
   `RoleStickyBuffer` row takes no value is gone. Code that assumed it
   must handle `frame` (a required value) and the Suricata 8 directions.
-- `dialect.KindRaw` moved up by one: `dialect.KindDirection` is
-  declared before it. Code that stored `ValueKind` numbers must re-map
-  them.
+- `dialect.KindRaw` moved up by four: `dialect.KindDirection`,
+  `KindTos`, `KindQuotedUint` and `KindUintEnum` are declared before it.
+  Code that stored `ValueKind` numbers must re-map them.
+- `value-invalid` holds integer values to the dialect and release. It now
+  reports an error for:
+  - Suricata's integer syntax in Snort 2.9 (hex numbers, size units,
+    negated ranges, bitmask tests), which `ParseRelInt` accepted for
+    every dialect;
+  - Suricata 8's integer syntax when the version is 7.0;
+  - `threshold: type backoff` outside Suricata 8.
+- `value.RelInt` gains `Forms`, so a `RelInt` literal compared with
+  `==` must set it.
+- `tos` is `KindTos`, the `[!]N` or `[!]xHH` form both engines read, not
+  `KindRelInt`, so `tos:<5` is now an error. `id`, `icmp_id` and
+  `icmp_seq` are `KindQuotedUint`, and `rfb.secresult` is `KindUintEnum`.
 - `file_data` takes an optional value. Its table kind is `KindRaw`, and
   `value-invalid` checks the value per dialect: `mime` in Snort 2.9, and
   a direction in Suricata 8 (none in 7.0). `file.data`, `file.name`, `file.magic`, the
@@ -125,6 +137,25 @@ Before v1 the API may change in any minor release.
 - `Dialect.ActionAdded`, `Dialect.ProtocolAdded` and
   `Dialect.IsPacketProtocol`. `doh2` is new, and `ldap`, `mdns`, `pop3`
   and `websocket` are marked as added in Suricata 8.0.
+- `threshold: type backoff` (Suricata 8). `multiplier` takes the place
+  of `seconds`, and `ParseThreshold` enforces Suricata's rules: the
+  multiplier is 2 to 65535, the count 1 to 65535, the track `by_flow`,
+  and `seconds` is not allowed. `value.Threshold` gains `Multiplier`.
+  This was the most visible gap: 44 of the rules Suricata 8.0.8 ships
+  failed `value-invalid`.
+- `tos:x10`, Suricata's hex form (`value.ParseTos`, `KindTos`), and quoted
+  numbers in `id:"123"`, `icmp_id` and `icmp_seq`
+  (`value.ParseQuotedUint`, `KindQuotedUint`).
+- `KindUintEnum` and `value.ParseUintEnum`: a Suricata 8 integer that may
+  be given by name, `rfb.secresult:!fail`. Suricata 7 reads only the
+  name.
+- `value.RelIntForm`, `RelInt.Forms` and `RelInt.Suricata7` say which
+  integer forms a value uses, and whether Suricata 7 reads them.
+- `content-md5-invalid` check (error). It reports a content in an MD5
+  buffer (`ja3.hash`, `ja3s.hash`, `ssh.hassh`, `ssh.hassh.server`,
+  `quic.cyu.hash`) that is not 32 bytes, which Suricata refuses. It also
+  reports one with a byte that is not a hex digit: it never matches, and
+  Suricata 8 refuses it (a warning before 8.0 or with no release set).
 - `content-depth-too-short` check (error): a `depth` or `within` smaller
   than the content it modifies, measured on the decoded pattern (escapes
   and `|hex|` bytes count once each), so it can never match; Suricata

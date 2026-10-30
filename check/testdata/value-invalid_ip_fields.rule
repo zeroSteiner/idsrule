@@ -1,0 +1,12 @@
+# lint: dialect=suricata
+alert ip any any -> any any (msg:"a"; tos:x10; sid:1; rev:1;)
+alert ip any any -> any any (msg:"b"; tos:! X1f; sid:2; rev:1;)
+alert ip any any -> any any (msg:"c"; tos:8; sid:3; rev:1;)
+alert ip any any -> any any (msg:"d"; id:"123"; sid:4; rev:1;)
+alert icmp any any -> any any (msg:"e"; icmp_seq:" 5 "; icmp_id:7; sid:5; rev:1;)
+alert rfb any any -> any any (msg:"f"; rfb.secresult:!fail; sid:6; rev:1;)
+alert rfb any any -> any any (msg:"g"; rfb.secresult:>1; sid:7; rev:1;)
+# expect: value-invalid error "tos: tos is at most 255"
+alert ip any any -> any any (msg:"h"; tos:256; sid:8; rev:1;)
+# expect: value-invalid error "tos: expected a digit"
+alert ip any any -> any any (msg:"i"; tos:<8; sid:9; rev:1;)

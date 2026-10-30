@@ -84,6 +84,7 @@ func checkValue(ctx *Context, o *cst.Option, k dialect.Keyword) {
 		ctx.Report(o.ValueSpan(), "%s: %v", k.Name, err)
 		return
 	}
+	checkIntegerForms(ctx, o, k, text)
 	switch k.Name {
 	case "file_data":
 		// The table cannot give file_data one kind: its value is mime in
@@ -100,8 +101,21 @@ func checkValue(ctx *Context, o *cst.Option, k dialect.Keyword) {
 			}
 		}
 	case "threshold":
-		if t, err := value.ParseThreshold(logical); err == nil && !t.HasType {
+		t, err := value.ParseThreshold(logical)
+		switch {
+		case err != nil:
+		case !t.HasType:
 			ctx.Report(o.ValueSpan(), "threshold requires type")
+		case t.Type != "backoff":
+		case ctx.Dialect != dialect.Suricata:
+			ctx.Report(o.ValueSpan(), "threshold: %s has no type backoff", ctx.Dialect)
+		case ctx.before(dialect.Suricata8):
+			ctx.Report(o.ValueSpan(), "threshold: type backoff requires %s %s or later", ctx.Dialect, dialect.Suricata8)
+		}
+	case "rfb.secresult":
+		// Suricata 7 reads only the names.
+		if e, err := value.ParseUintEnum(logical); err == nil && ctx.before(dialect.Suricata8) && (e.Name == "" || e.Negated) {
+			ctx.Report(o.ValueSpan(), "rfb.secresult takes ok, fail, toomany or unknown in %s %s", ctx.Dialect, ctx.Version)
 		}
 	case "sid":
 		// Suricata refuses to load a rule with sid 0; Snort 2.9 only
@@ -113,6 +127,54 @@ func checkValue(ctx *Context, o *cst.Option, k dialect.Keyword) {
 			}
 		}
 	}
+}
+
+// checkIntegerForms reports a valid integer value that uses forms the
+// dialect or release does not read: any of Suricata's in Snort 2.9, and
+// Suricata 8's in Suricata 7.
+func checkIntegerForms(ctx *Context, o *cst.Option, k dialect.Keyword, text string) {
+	var r value.RelInt
+	switch k.Kind {
+	case dialect.KindRelInt:
+		r, _ = value.ParseRelInt(text)
+	case dialect.KindUrilen:
+		u, _ := value.ParseUrilen(text)
+		r = u.RelInt
+	case dialect.KindUintEnum:
+		e, _ := value.ParseUintEnum(text)
+		r = e.RelInt
+	case dialect.KindNone, dialect.KindUint, dialect.KindIntOrVar, dialect.KindQuoted,
+		dialect.KindIdent, dialect.KindContent, dialect.KindPCRE, dialect.KindFlow,
+		dialect.KindFlowbits, dialect.KindReference, dialect.KindMetadata, dialect.KindThreshold,
+		dialect.KindBase64Decode, dialect.KindFastPattern, dialect.KindIsDataAt, dialect.KindCSV,
+		dialect.KindDirection, dialect.KindTos, dialect.KindQuotedUint, dialect.KindRaw:
+		return
+	}
+	switch {
+	case ctx.Dialect == dialect.Snort2 && r.Forms != 0:
+		ctx.Report(o.ValueSpan(), "%s: %s is Suricata syntax, which snort2 does not read", k.Name, describeForm(r.Forms))
+	case ctx.before(dialect.Suricata8) && !r.Suricata7():
+		form := describeForm(r.Forms &^ value.FormUnit)
+		if r.Forms&^value.FormUnit == 0 {
+			form = "a size unit on a comparison or a range"
+		}
+		ctx.Report(o.ValueSpan(), "%s: %s requires %s %s or later", k.Name, form, ctx.Dialect, dialect.Suricata8)
+	}
+}
+
+// describeForm names the first of forms, for a message.
+func describeForm(forms value.RelIntForm) string {
+	switch {
+	case forms&value.FormBitmask != 0:
+		return "a bitmask test"
+	case forms&value.FormNegatedRange != 0:
+		return "a negated range"
+	case forms&value.FormHex != 0:
+		return "a hex number"
+	case forms&value.FormIECUnit != 0:
+		return "a kib, mib or gib unit"
+	}
+	return "a size unit"
 }
 
 // unescapedQuotes counts the '"' bytes of s that are not the second byte

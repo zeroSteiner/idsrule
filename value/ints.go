@@ -87,7 +87,29 @@ type RelInt struct {
 	// B is the upper bound of a range or the value a bitmask test
 	// compares with; zero otherwise.
 	B int64
+	// Forms records the forms the value uses beyond plain decimal numbers
+	// with an operator or a range, which Snort 2.9 and Suricata 7 do not
+	// all read.
+	Forms RelIntForm
 }
+
+// RelIntForm is a set of the forms a relational integer may use beyond
+// plain decimal numbers, comparisons and ranges.
+type RelIntForm uint8
+
+const (
+	// FormHex is a number written in hex, "0x1f" (Suricata 8).
+	FormHex RelIntForm = 1 << iota
+	// FormUnit is a number with a kb, mb or gb size unit (Suricata).
+	FormUnit
+	// FormIECUnit is a number with a kib, mib or gib size unit
+	// (Suricata 8).
+	FormIECUnit
+	// FormNegatedRange is a range preceded by '!' (Suricata 8).
+	FormNegatedRange
+	// FormBitmask is a bitmask test, "&M=N" or "&M!=N" (Suricata 8).
+	FormBitmask
+)
 
 // relOps are the comparison operators, longest first so that "<=" is not
 // read as "<".
@@ -107,6 +129,7 @@ func ParseRelInt(s string) (RelInt, error) {
 	if i < len(s) && s[i] == '&' {
 		return parseBitmask(s, i+1)
 	}
+	var forms RelIntForm
 	for _, op := range relOps {
 		if strings.HasPrefix(s[i:], op) {
 			r.Op = op
@@ -115,16 +138,17 @@ func ParseRelInt(s string) (RelInt, error) {
 		}
 	}
 	i = skipBlanks(s, i)
-	a, n, err := uintValue(s, i)
+	a, n, f, err := uintValue(s, i)
 	if err != nil {
 		return RelInt{}, err
 	}
-	r.A = a
+	r.A, forms = a, f
 	i = skipBlanks(s, i+n)
 	if i == len(s) {
 		if r.Op == "!=" {
 			r.Op = "!"
 		}
+		r.Forms = forms
 		return r, nil
 	}
 	// Only a bare '!' may precede a range, negating it.
@@ -141,13 +165,16 @@ func ParseRelInt(s string) (RelInt, error) {
 	default:
 		return RelInt{}, errAt(i, "unexpected text after number")
 	}
+	if r.Op[0] == '!' {
+		forms |= FormNegatedRange
+	}
 	i = skipBlanks(s, i)
 	bOff := i
-	b, n, err := uintValue(s, i)
+	b, n, f, err := uintValue(s, i)
 	if err != nil {
 		return RelInt{}, err
 	}
-	r.B = b
+	r.B, r.Forms = b, forms|f
 	if i = skipBlanks(s, i+n); i != len(s) {
 		return RelInt{}, errAt(i, "unexpected text after range")
 	}
@@ -161,7 +188,7 @@ func ParseRelInt(s string) (RelInt, error) {
 // s[i:], just after its '&'.
 func parseBitmask(s string, i int) (RelInt, error) {
 	i = skipBlanks(s, i)
-	a, n, err := uintValue(s, i)
+	a, n, fa, err := uintValue(s, i)
 	if err != nil {
 		return RelInt{}, err
 	}
@@ -178,11 +205,11 @@ func parseBitmask(s string, i int) (RelInt, error) {
 	}
 	i = skipBlanks(s, i)
 	bOff := i
-	b, n, err := uintValue(s, i)
+	b, n, fb, err := uintValue(s, i)
 	if err != nil {
 		return RelInt{}, err
 	}
-	r.B = b
+	r.B, r.Forms = b, FormBitmask|fa|fb
 	if i = skipBlanks(s, i+n); i != len(s) {
 		return RelInt{}, errAt(i, "unexpected text after bitmask")
 	}
@@ -192,22 +219,23 @@ func parseBitmask(s string, i int) (RelInt, error) {
 	return r, nil
 }
 
-// sizeUnits are the unit suffixes Suricata 8 accepts after a decimal
-// number, matched without regard to case.
+// sizeUnits are the unit suffixes Suricata accepts after a decimal
+// number, matched without regard to case, with the form each is.
 var sizeUnits = []struct {
 	name string
 	mult int64
+	form RelIntForm
 }{
-	{"kib", 1 << 10}, {"kb", 1 << 10},
-	{"mib", 1 << 20}, {"mb", 1 << 20},
-	{"gib", 1 << 30}, {"gb", 1 << 30},
+	{"kib", 1 << 10, FormIECUnit}, {"kb", 1 << 10, FormUnit},
+	{"mib", 1 << 20, FormIECUnit}, {"mb", 1 << 20, FormUnit},
+	{"gib", 1 << 30, FormIECUnit}, {"gb", 1 << 30, FormUnit},
 }
 
 // uintValue decodes the number at s[i:] as Suricata 8 reads one, "0x"
 // followed by hex digits or decimal digits with an optional size unit,
-// and returns its value and the length of its text. Snort 2.9 reads only
-// the plain decimal digits.
-func uintValue(s string, i int) (int64, int, error) {
+// and returns its value, the length of its text and the forms it uses.
+// Snort 2.9 reads only the plain decimal digits.
+func uintValue(s string, i int) (int64, int, RelIntForm, error) {
 	if strings.HasPrefix(s[i:], "0x") {
 		n := 2
 		for i+n < len(s) && isHex(s[i+n]) {
@@ -218,25 +246,35 @@ func uintValue(s string, i int) (int64, int, error) {
 		if n > 2 {
 			v, err := strconv.ParseInt(s[i+2:i+n], 16, 64)
 			if err != nil {
-				return 0, 0, errAt(i, "number too large")
+				return 0, 0, 0, errAt(i, "number too large")
 			}
-			return v, n, nil
+			return v, n, FormHex, nil
 		}
 	}
 	v, n, err := number(s, i)
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, 0, err
 	}
 	rest := s[i+n:]
 	for _, u := range sizeUnits {
 		if len(rest) >= len(u.name) && strings.EqualFold(rest[:len(u.name)], u.name) {
 			if v > maxInt64/u.mult {
-				return 0, 0, errAt(i, "number too large")
+				return 0, 0, 0, errAt(i, "number too large")
 			}
-			return v * u.mult, n + len(u.name), nil
+			return v * u.mult, n + len(u.name), u.form, nil
 		}
 	}
-	return v, n, nil
+	return v, n, 0, nil
+}
+
+// Suricata7 reports whether Suricata 7 reads the value: it uses no
+// Suricata 8 form, and a kb, mb or gb unit only on a plain number or
+// one after "=".
+func (r RelInt) Suricata7() bool {
+	if r.Forms&(FormHex|FormIECUnit|FormNegatedRange|FormBitmask) != 0 {
+		return false
+	}
+	return r.Forms&FormUnit == 0 || r.Op == "" || r.Op == "="
 }
 
 // number decodes the run of digits at s[i:] and returns its value and
@@ -282,4 +320,100 @@ func ParseUrilen(s string) (Urilen, error) {
 		return Urilen{}, errAt(buf.off, `expected "norm" or "raw"`)
 	}
 	return Urilen{RelInt: r, Buffer: buf.text}, nil
+}
+
+// Tos is a decoded tos value.
+type Tos struct {
+	// Negated is set when the value starts with '!'.
+	Negated bool
+	// Value is the type of service.
+	Value uint8
+}
+
+// ParseTos decodes a tos value: an optional '!' and blanks, then a decimal
+// number of up to three digits or, as Suricata writes it, 'x' or 'X' and
+// one or two hex digits. The number is at most 255.
+func ParseTos(s string) (Tos, error) {
+	var t Tos
+	i := 0
+	if strings.HasPrefix(s, "!") {
+		t.Negated = true
+		i = skipBlanks(s, 1)
+	}
+	if i < len(s) && (s[i] == 'x' || s[i] == 'X') {
+		digits := s[i+1:]
+		if len(digits) == 0 || len(digits) > 2 {
+			return Tos{}, errAt(i+1, "expected one or two hex digits")
+		}
+		for j := 0; j < len(digits); j++ {
+			if !isHex(digits[j]) {
+				return Tos{}, errAt(i+1+j, "expected a hex digit")
+			}
+		}
+		v, _ := strconv.ParseUint(digits, 16, 8)
+		t.Value = uint8(v)
+		return t, nil
+	}
+	v, err := ParseUint(s[i:])
+	if err != nil {
+		return Tos{}, shift(err, i)
+	}
+	if v > 255 {
+		return Tos{}, errAt(i, "tos is at most 255")
+	}
+	t.Value = uint8(v)
+	return t, nil
+}
+
+// ParseQuotedUint decodes an unsigned decimal integer that may be written
+// in double quotes, with blanks inside them, as Suricata reads id, icmp_id
+// and icmp_seq: 123, "123" or " 123 ". Like Suricata, it takes either
+// quote without the other.
+func ParseQuotedUint(s string) (uint64, error) {
+	i, j := 0, len(s)
+	if strings.HasPrefix(s, `"`) {
+		i = skipBlanks(s, 1)
+	}
+	if j > i && s[j-1] == '"' {
+		j--
+		for j > i && isBlank(s[j-1]) {
+			j--
+		}
+	}
+	v, err := ParseUint(s[i:j])
+	return v, shift(err, i)
+}
+
+// UintEnum is a decoded KindUintEnum value: a relational integer, or a
+// name.
+type UintEnum struct {
+	// RelInt is the integer when Name is empty.
+	RelInt
+	// Name is the name, without the '!', when the value is one.
+	Name string
+	// Negated is set when the name starts with '!'.
+	Negated bool
+}
+
+// ParseUintEnum decodes an integer as Suricata 8 reads one that may be
+// named: a relational integer as ParseRelInt reads it, or an identifier,
+// optionally after '!'. Which names a keyword takes is not checked.
+func ParseUintEnum(s string) (UintEnum, error) {
+	if r, err := ParseRelInt(s); err == nil {
+		return UintEnum{RelInt: r}, nil
+	}
+	e := UintEnum{}
+	name := s
+	if strings.HasPrefix(name, "!") {
+		e.Negated, name = true, name[1:]
+	}
+	if name == "" || isDigit(name[0]) {
+		return UintEnum{}, errAt(0, "expected a number, a comparison or a name")
+	}
+	n, err := ParseIdent(name)
+	if err != nil {
+		return UintEnum{}, shift(err, len(s)-len(name))
+	}
+	e.Name = n
+	return e, nil
 }

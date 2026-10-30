@@ -1,0 +1,8 @@
+# lint: dialect=suricata
+alert tcp any any -> any any (msg:"a"; stream-event:pkt_invalid_ack; threshold:type backoff, track by_flow, count 1, multiplier 10; sid:1; rev:1;)
+# expect: value-invalid error "threshold: type backoff takes multiplier, not seconds"
+alert tcp any any -> any any (msg:"b"; threshold:type backoff, track by_flow, count 1, multiplier 10, seconds 5; sid:2; rev:1;)
+# expect: value-invalid error "threshold: type backoff takes only track by_flow"
+alert tcp any any -> any any (msg:"c"; threshold:type backoff, track by_src, count 1, multiplier 10; sid:3; rev:1;)
+# expect: value-invalid error "threshold: missing multiplier"
+alert tcp any any -> any any (msg:"d"; threshold:type backoff, track by_flow, count 1; sid:4; rev:1;)

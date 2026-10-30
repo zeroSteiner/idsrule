@@ -1,0 +1,9 @@
+# lint: dialect=suricata
+alert tls any any -> any any (msg:"a"; ja3.hash; content:"e7eca2baf4458d095b7f45da28c16c34"; sid:1; rev:1;)
+alert ssh any any -> any any (msg:"b"; ssh.hassh; content:"|65|7eca2baf4458d095b7f45da28c16c34"; sid:2; rev:1;)
+alert tls any any -> any any (msg:"c"; ja3.hash; to_lowercase; content:"short"; sid:3; rev:1;)
+alert tls any any -> any any (msg:"d"; ja3.string; content:"771,"; sid:4; rev:1;)
+# expect: content-md5-invalid error "ja3.hash content is 31 bytes; an MD5 is 32 hex digits, so Suricata refuses the rule"
+alert tls any any -> any any (msg:"e"; ja3.hash; content:"e7eca2baf4458d095b7f45da28c16c3"; sid:5; rev:1;)
+# expect: content-md5-invalid warning "ja3s.hash content has 'z', not a hex digit; it never matches, and Suricata 8 refuses the rule"
+alert tls any any -> any any (msg:"f"; ja3s.hash; content:"z7eca2baf4458d095b7f45da28c16c34"; sid:6; rev:1;)

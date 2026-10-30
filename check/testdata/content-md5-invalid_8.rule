@@ -1,0 +1,3 @@
+# lint: dialect=suricata version=8
+# expect: content-md5-invalid error "quic.cyu.hash content has 'g', not a hex digit"
+alert quic any any -> any any (msg:"a"; quic.cyu.hash; content:"g7eca2baf4458d095b7f45da28c16c34"; sid:1; rev:1;)

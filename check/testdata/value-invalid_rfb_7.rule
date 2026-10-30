@@ -1,0 +1,4 @@
+# lint: dialect=suricata version=7
+alert rfb any any -> any any (msg:"a"; rfb.secresult:fail; sid:1; rev:1;)
+# expect: value-invalid error "rfb.secresult takes ok, fail, toomany or unknown in suricata 7.0"
+alert rfb any any -> any any (msg:"b"; rfb.secresult:!fail; sid:2; rev:1;)

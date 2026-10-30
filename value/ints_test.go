@@ -115,40 +115,40 @@ func TestParseRelInt(t *testing.T) {
 		{"99999999999999999999", value.RelInt{}, 0},
 		{"1<>99999999999999999999", value.RelInt{}, 3},
 		// Suricata 8: hex numbers and size units.
-		{"0x10", value.RelInt{A: 16}, noErr},
-		{"0xfF", value.RelInt{A: 255}, noErr},
-		{">=0x10", value.RelInt{Op: ">=", A: 16}, noErr},
-		{"0x10-0x20", value.RelInt{Op: "-", A: 16, B: 32}, noErr},
-		{"0x7fffffffffffffff", value.RelInt{A: 1<<63 - 1}, noErr},
+		{"0x10", value.RelInt{A: 16, Forms: value.FormHex}, noErr},
+		{"0xfF", value.RelInt{A: 255, Forms: value.FormHex}, noErr},
+		{">=0x10", value.RelInt{Op: ">=", A: 16, Forms: value.FormHex}, noErr},
+		{"0x10-0x20", value.RelInt{Op: "-", A: 16, B: 32, Forms: value.FormHex}, noErr},
+		{"0x7fffffffffffffff", value.RelInt{A: 1<<63 - 1, Forms: value.FormHex}, noErr},
 		{"0x8000000000000000", value.RelInt{}, 0},
 		{"0X10", value.RelInt{}, 1},
 		{"0x", value.RelInt{}, 1},
 		{"0xg", value.RelInt{}, 1},
-		{"10kb", value.RelInt{A: 10 << 10}, noErr},
-		{"1KiB", value.RelInt{A: 1 << 10}, noErr},
-		{">10MB", value.RelInt{Op: ">", A: 10 << 20}, noErr},
-		{"2mib", value.RelInt{A: 2 << 20}, noErr},
-		{"1Gb", value.RelInt{A: 1 << 30}, noErr},
-		{"3GiB", value.RelInt{A: 3 << 30}, noErr},
-		{"0kb", value.RelInt{}, noErr},
-		{"1kb<>2kb", value.RelInt{Op: "<>", A: 1 << 10, B: 2 << 10}, noErr},
+		{"10kb", value.RelInt{A: 10 << 10, Forms: value.FormUnit}, noErr},
+		{"1KiB", value.RelInt{A: 1 << 10, Forms: value.FormIECUnit}, noErr},
+		{">10MB", value.RelInt{Op: ">", A: 10 << 20, Forms: value.FormUnit}, noErr},
+		{"2mib", value.RelInt{A: 2 << 20, Forms: value.FormIECUnit}, noErr},
+		{"1Gb", value.RelInt{A: 1 << 30, Forms: value.FormUnit}, noErr},
+		{"3GiB", value.RelInt{A: 3 << 30, Forms: value.FormIECUnit}, noErr},
+		{"0kb", value.RelInt{Forms: value.FormUnit}, noErr},
+		{"1kb<>2kb", value.RelInt{Op: "<>", A: 1 << 10, B: 2 << 10, Forms: value.FormUnit}, noErr},
 		{"9999999999gb", value.RelInt{}, 0},
 		{"10 kb", value.RelInt{}, 3},
 		{"10k", value.RelInt{}, 2},
 		{"10kbx", value.RelInt{}, 4},
 		{"0x10kb", value.RelInt{}, 4},
 		// Suricata 8: negated ranges.
-		{"!5-10", value.RelInt{Op: "!-", A: 5, B: 10}, noErr},
-		{"!5<>10", value.RelInt{Op: "!<>", A: 5, B: 10}, noErr},
-		{"! 5 - 10", value.RelInt{Op: "!-", A: 5, B: 10}, noErr},
+		{"!5-10", value.RelInt{Op: "!-", A: 5, B: 10, Forms: value.FormNegatedRange}, noErr},
+		{"!5<>10", value.RelInt{Op: "!<>", A: 5, B: 10, Forms: value.FormNegatedRange}, noErr},
+		{"! 5 - 10", value.RelInt{Op: "!-", A: 5, B: 10, Forms: value.FormNegatedRange}, noErr},
 		{"!10-5", value.RelInt{}, 4},
 		{"!=5-10", value.RelInt{}, 3},
 		{"<5-10", value.RelInt{}, 2},
 		// Suricata 8: bitmask tests.
-		{"&0xc0=0x80", value.RelInt{Op: "&=", A: 0xc0, B: 0x80}, noErr},
-		{"&0x40!=0", value.RelInt{Op: "&!=", A: 0x40}, noErr},
-		{" & 0xc0 = 0x80 ", value.RelInt{Op: "&=", A: 0xc0, B: 0x80}, noErr},
-		{"&12!=4", value.RelInt{Op: "&!=", A: 12, B: 4}, noErr},
+		{"&0xc0=0x80", value.RelInt{Op: "&=", A: 0xc0, B: 0x80, Forms: value.FormBitmask | value.FormHex}, noErr},
+		{"&0x40!=0", value.RelInt{Op: "&!=", A: 0x40, Forms: value.FormBitmask | value.FormHex}, noErr},
+		{" & 0xc0 = 0x80 ", value.RelInt{Op: "&=", A: 0xc0, B: 0x80, Forms: value.FormBitmask | value.FormHex}, noErr},
+		{"&12!=4", value.RelInt{Op: "&!=", A: 12, B: 4, Forms: value.FormBitmask}, noErr},
 		{"&0xc0=12", value.RelInt{}, 6},
 		{"&0xc0", value.RelInt{}, 5},
 		{"&0xc0<0x80", value.RelInt{}, 5},
@@ -225,6 +225,110 @@ func TestParseUrilen(t *testing.T) {
 			checkErr(t, err, tt.err)
 			if got != tt.want {
 				t.Errorf("ParseUrilen(%q) = %+v, want %+v", tt.in, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRelIntSuricata7(t *testing.T) {
+	tests := map[string]bool{
+		"10": true, ">10": true, "1-5": true, "!5": true, "10kb": true, "=10mb": true,
+		">10kb": false, "1kb-2kb": false, "10kib": false, "0x10": false, "!1-5": false, "&3=1": false,
+	}
+	for in, want := range tests {
+		r, err := value.ParseRelInt(in)
+		if err != nil {
+			t.Fatalf("ParseRelInt(%q): %v", in, err)
+		}
+		if got := r.Suricata7(); got != want {
+			t.Errorf("ParseRelInt(%q).Suricata7() = %v, want %v (forms %b)", in, got, want, r.Forms)
+		}
+	}
+}
+
+func TestParseTos(t *testing.T) {
+	tests := []struct {
+		in   string
+		want value.Tos
+		err  int
+	}{
+		{"8", value.Tos{Value: 8}, noErr},
+		{"255", value.Tos{Value: 255}, noErr},
+		{"!8", value.Tos{Negated: true, Value: 8}, noErr},
+		{"! 8", value.Tos{Negated: true, Value: 8}, noErr},
+		{"x10", value.Tos{Value: 16}, noErr},
+		{"Xff", value.Tos{Value: 255}, noErr},
+		{"!x1", value.Tos{Negated: true, Value: 1}, noErr},
+		{"256", value.Tos{}, 0},
+		{"!256", value.Tos{}, 1},
+		{"x", value.Tos{}, 1},
+		{"x100", value.Tos{}, 1},
+		{"xg", value.Tos{}, 1},
+		{"0x10", value.Tos{}, 1},
+		{"", value.Tos{}, 0},
+		{"<8", value.Tos{}, 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.in, func(t *testing.T) {
+			got, err := value.ParseTos(tt.in)
+			checkErr(t, err, tt.err)
+			if got != tt.want {
+				t.Errorf("ParseTos(%q) = %+v, want %+v", tt.in, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestParseQuotedUint(t *testing.T) {
+	tests := []struct {
+		in   string
+		want uint64
+		err  int
+	}{
+		{"123", 123, noErr},
+		{`"123"`, 123, noErr},
+		{`" 123 "`, 123, noErr},
+		{`"123`, 123, noErr},
+		{`123"`, 123, noErr},
+		{`""`, 0, 1},
+		{`"1 2"`, 0, 2},
+		{`"x"`, 0, 1},
+		{"", 0, 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.in, func(t *testing.T) {
+			got, err := value.ParseQuotedUint(tt.in)
+			checkErr(t, err, tt.err)
+			if got != tt.want {
+				t.Errorf("ParseQuotedUint(%q) = %d, want %d", tt.in, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestParseUintEnum(t *testing.T) {
+	tests := []struct {
+		in   string
+		want value.UintEnum
+		err  int
+	}{
+		{"3", value.UintEnum{RelInt: value.RelInt{A: 3}}, noErr},
+		{">3", value.UintEnum{RelInt: value.RelInt{Op: ">", A: 3}}, noErr},
+		{"fail", value.UintEnum{Name: "fail"}, noErr},
+		{"!fail", value.UintEnum{Name: "fail", Negated: true}, noErr},
+		{"symmetric_active", value.UintEnum{Name: "symmetric_active"}, noErr},
+		{"!", value.UintEnum{}, 0},
+		{"", value.UintEnum{}, 0},
+		{"3x", value.UintEnum{}, 0},
+		{"a b", value.UintEnum{}, 1},
+		{"!a!", value.UintEnum{}, 2},
+	}
+	for _, tt := range tests {
+		t.Run(tt.in, func(t *testing.T) {
+			got, err := value.ParseUintEnum(tt.in)
+			checkErr(t, err, tt.err)
+			if got != tt.want {
+				t.Errorf("ParseUintEnum(%q) = %+v, want %+v", tt.in, got, tt.want)
 			}
 		})
 	}

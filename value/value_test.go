@@ -65,6 +65,9 @@ func TestValidate(t *testing.T) {
 		{dialect.KindIsDataAt, []string{"1", "!1,relative"}, []string{"", "1,x"}},
 		{dialect.KindCSV, []string{"a", "a, b"}, []string{"", "a,,b"}},
 		{dialect.KindDirection, []string{"", "to_client", "to_server"}, []string{"to_both", "TO_CLIENT", "to_client,x"}},
+		{dialect.KindTos, []string{"8", "!8", "x10", "! X1f"}, []string{"", "256", "x", "x100", "<8"}},
+		{dialect.KindQuotedUint, []string{"5", `"5"`, `" 5 "`}, []string{"", `""`, "-1", `"x"`}},
+		{dialect.KindUintEnum, []string{"1", ">2", "!1-5", "fail", "!fail", "symmetric_active"}, []string{"", "!", "1x", "a b", "!>1"}},
 		{dialect.KindRaw, []string{"", "anything at all", ",,"}, nil},
 	}
 	covered := make(map[dialect.ValueKind]bool)
