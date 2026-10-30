@@ -49,13 +49,14 @@ func TestTableInvariants(t *testing.T) {
 					t.Errorf("Value is Optional but Kind %v rejects an empty value: %v", k.Kind, err)
 				}
 			}
-			if k.Role == dialect.RoleStickyBuffer {
-				if k.Value != dialect.NoValue {
-					t.Errorf("sticky buffer takes a value (%v)", k.Value)
-				}
-				if !k.Repeatable {
-					t.Error("sticky buffer is not Repeatable")
-				}
+			if k.Role == dialect.RoleStickyBuffer && !k.Repeatable {
+				t.Error("sticky buffer is not Repeatable")
+			}
+			if k.Kind == dialect.KindDirection && (k.Role != dialect.RoleStickyBuffer || k.Value != dialect.Optional || k.Dialects != dialect.SetSuricata) {
+				t.Errorf("KindDirection on a %v keyword with Value %v and Dialects %b; it is for the optional value of a Suricata sticky buffer", k.Role, k.Value, k.Dialects)
+			}
+			if k.Directional && (k.Value != dialect.Required || k.Dialects != dialect.SetSuricata || k.Kind == dialect.KindDirection) {
+				t.Errorf("Directional on a keyword with Value %v, Kind %v and Dialects %b; it is for a Suricata keyword whose required value may start with a direction", k.Value, k.Kind, k.Dialects)
 			}
 			if k.Role == dialect.RoleTransform || k.Role == dialect.RoleBufferTest {
 				if k.Dialects != dialect.SetSuricata {
@@ -73,6 +74,18 @@ func TestTableInvariants(t *testing.T) {
 			}
 			if k.Successor != "" {
 				checkSuccessor(t, k)
+			}
+			checkVersions(t, k)
+			if k.Bits != 0 {
+				if k.Bits != 8 && k.Bits != 16 && k.Bits != 32 && k.Bits != 64 {
+					t.Errorf("Bits %d is not 8, 16, 32 or 64", k.Bits)
+				}
+				if k.Kind != dialect.KindRelInt && k.Kind != dialect.KindUrilen && k.Kind != dialect.KindUintEnum {
+					t.Errorf("Bits on a %v value; it is for the integers Suricata's integer parser reads", k.Kind)
+				}
+				if !k.Dialects.Has(dialect.Suricata) {
+					t.Error("Bits on a keyword Suricata does not have")
+				}
 			}
 			for _, d := range []dialect.Dialect{dialect.Snort2, dialect.Suricata} {
 				_, ok := dialect.Lookup(d, k.Name)
@@ -111,17 +124,18 @@ func checkReplaces(t *testing.T, k dialect.Keyword) {
 	}
 }
 
-// checkSuccessor checks that k.Successor is set only on a deprecated
-// keyword and names a keyword other than k that exists, undeprecated, in
-// every dialect k is deprecated in.
+// checkSuccessor checks that k.Successor is set only on a deprecated or
+// removed keyword and names a keyword other than k that exists,
+// undeprecated, in every dialect k is deprecated in, and in the release
+// that removed k.
 func checkSuccessor(t *testing.T, k dialect.Keyword) {
 	t.Helper()
 	if k.Successor == k.Name {
 		t.Error("Successor names the keyword itself")
 		return
 	}
-	if k.Deprecated == 0 {
-		t.Errorf("Successor %q on a keyword that is not deprecated", k.Successor)
+	if k.Deprecated == 0 && k.Removed == dialect.AnyVersion {
+		t.Errorf("Successor %q on a keyword that is neither deprecated nor removed", k.Successor)
 		return
 	}
 	s, ok := dialect.LookupAny(k.Successor)
@@ -134,6 +148,34 @@ func checkSuccessor(t *testing.T, k dialect.Keyword) {
 	}
 	if s.Deprecated&k.Deprecated != 0 {
 		t.Errorf("Successor %q is itself deprecated in %b", k.Successor, s.Deprecated&k.Deprecated)
+	}
+	if k.Removed != dialect.AnyVersion && !s.In(dialect.Suricata, k.Removed) {
+		t.Errorf("Successor %q does not exist in %v, which removed %q", k.Successor, k.Removed, k.Name)
+	}
+}
+
+// checkVersions checks that a keyword with Added or Removed belongs to one
+// dialect that has Versions, that both name releases of it, and that Added
+// comes before Removed.
+func checkVersions(t *testing.T, k dialect.Keyword) {
+	t.Helper()
+	if k.Added == dialect.AnyVersion && k.Removed == dialect.AnyVersion {
+		return
+	}
+	if k.Dialects != dialect.SetSuricata {
+		t.Errorf("Added %v / Removed %v on a keyword with Dialects %b; only a Suricata-only keyword has versions", k.Added, k.Removed, k.Dialects)
+		return
+	}
+	for _, v := range []dialect.Version{k.Added, k.Removed} {
+		if !dialect.Suricata.HasVersion(v) {
+			t.Errorf("version %v is not a Suricata release the tables describe", v)
+		}
+	}
+	if k.Added == dialect.Suricata.Versions()[0] {
+		t.Errorf("Added %v is the oldest release the tables describe; leave it unset", k.Added)
+	}
+	if k.Added != dialect.AnyVersion && k.Removed != dialect.AnyVersion && k.Added >= k.Removed {
+		t.Errorf("Added %v is not before Removed %v", k.Added, k.Removed)
 	}
 }
 
@@ -160,8 +202,10 @@ func TestTableContents(t *testing.T) {
 		"isdataat":          {dialect.Both, 0, dialect.Required, dialect.KindIsDataAt, dialect.RolePayload, true, "", ""},
 		"byte_test":         {dialect.Both, 0, dialect.Required, dialect.KindRaw, dialect.RolePayload, true, "", ""},
 		"base64_decode":     {dialect.Both, 0, dialect.Optional, dialect.KindBase64Decode, dialect.RolePayload, true, "", ""},
-		"file_data":         {dialect.Both, 0, dialect.NoValue, dialect.KindNone, dialect.RoleStickyBuffer, true, "", ""},
-		"file.data":         {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RoleStickyBuffer, true, "file_data", ""},
+		"file_data":         {dialect.Both, 0, dialect.Optional, dialect.KindRaw, dialect.RoleStickyBuffer, true, "", ""},
+		"file.data":         {dialect.SetSuricata, 0, dialect.Optional, dialect.KindDirection, dialect.RoleStickyBuffer, true, "file_data", ""},
+		"frame":             {dialect.SetSuricata, 0, dialect.Required, dialect.KindIdent, dialect.RoleStickyBuffer, true, "", ""},
+		"quic.version":      {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RoleStickyBuffer, true, "", ""},
 		"urilen":            {dialect.Both, 0, dialect.Required, dialect.KindUrilen, dialect.RolePayload, false, "", ""},
 		"dsize":             {dialect.Both, 0, dialect.Required, dialect.KindRelInt, dialect.RoleNonPayload, false, "", ""},
 		"flow":              {dialect.Both, 0, dialect.Required, dialect.KindFlow, dialect.RoleFlow, false, "", ""},
@@ -175,7 +219,7 @@ func TestTableContents(t *testing.T) {
 		"http.uri":          {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RoleStickyBuffer, true, "http_uri", ""},
 		"http.request_body": {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RoleStickyBuffer, true, "http_client_body", ""},
 		"http.user_agent":   {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RoleStickyBuffer, true, "", ""},
-		"http_accept":       {dialect.SetSuricata, dialect.SetSuricata, dialect.NoValue, dialect.KindNone, dialect.RoleStickyBuffer, true, "", "http.accept"},
+		"http_accept":       {dialect.SetSuricata, dialect.SetSuricata, dialect.Optional, dialect.KindDirection, dialect.RoleStickyBuffer, true, "", "http.accept"},
 		"dce_iface":         {dialect.Both, dialect.SetSuricata, dialect.Required, dialect.KindRaw, dialect.RoleAppLayer, false, "", "dcerpc.iface"},
 		"dcerpc.iface":      {dialect.SetSuricata, 0, dialect.Required, dialect.KindRaw, dialect.RoleAppLayer, false, "dce_iface", ""},
 		"dcerpc.stub_data":  {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RoleStickyBuffer, true, "dce_stub_data", ""},
@@ -191,6 +235,8 @@ func TestTableContents(t *testing.T) {
 		"absent":            {dialect.SetSuricata, 0, dialect.Optional, dialect.KindRaw, dialect.RoleBufferTest, true, "", ""},
 		"noalert":           {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RolePostDetect, false, "", ""},
 		"mqtt.qos":          {dialect.SetSuricata, 0, dialect.Required, dialect.KindRaw, dialect.RoleAppLayer, false, "", ""},
+		"ftp.command":       {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RoleStickyBuffer, true, "", ""},
+		"ftp.dynamic_port":  {dialect.SetSuricata, 0, dialect.Required, dialect.KindRelInt, dialect.RoleAppLayer, true, "", ""},
 		"luajit":            {dialect.SetSuricata, dialect.SetSuricata, dialect.Required, dialect.KindRaw, dialect.RoleOther, true, "", "lua"},
 		"uricontent":        {dialect.Both, dialect.SetSuricata, dialect.Required, dialect.KindContent, dialect.RolePayload, true, "", ""},
 		"logto":             {dialect.SetSnort2, 0, dialect.Required, dialect.KindQuoted, dialect.RolePostDetect, false, "", ""},

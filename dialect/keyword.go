@@ -45,8 +45,9 @@ const (
 	// KindIntOrVar is a signed decimal integer or a byte_extract variable:
 	// depth, offset, distance, within.
 	KindIntOrVar
-	// KindRelInt is an integer with an optional relational operator or a
-	// range: dsize, bsize.
+	// KindRelInt is an integer with an optional relational operator, a
+	// range or, from Suricata 8, a bitmask test, its numbers decimal or
+	// in Suricata hex or with a size unit: dsize, bsize.
 	KindRelInt
 	// KindUrilen is a KindRelInt value followed by an optional ",norm" or
 	// ",raw": urilen.
@@ -82,6 +83,19 @@ const (
 	KindIsDataAt
 	// KindCSV is a comma-separated list of non-empty items.
 	KindCSV
+	// KindDirection is the direction a Suricata 8 sticky buffer may name,
+	// to_client or to_server: file.data:to_client.
+	KindDirection
+	// KindTos is a tos value: an optional '!' and a number up to 255,
+	// decimal or, as Suricata writes it, 'x' and hex digits: tos:!x10.
+	KindTos
+	// KindQuotedUint is an unsigned decimal integer, which Suricata also
+	// reads in double quotes: id:"123".
+	KindQuotedUint
+	// KindUintEnum is a Suricata 8 integer that may also be given by name:
+	// a KindRelInt value, or a name with an optional '!':
+	// rfb.secresult:!fail, ntp.mode:client.
+	KindUintEnum
 	// KindRaw is a value whose grammar is not decoded: anything is accepted.
 	KindRaw
 )
@@ -126,6 +140,14 @@ func (k ValueKind) String() string {
 		return "isdataat"
 	case KindCSV:
 		return "csv"
+	case KindDirection:
+		return "direction"
+	case KindTos:
+		return "tos"
+	case KindQuotedUint:
+		return "quoted_uint"
+	case KindUintEnum:
+		return "uint_enum"
 	case KindRaw:
 		return "raw"
 	}
@@ -147,7 +169,8 @@ const (
 	// RoleModifier modifies the preceding content: nocase, depth, http_uri.
 	RoleModifier
 	// RoleStickyBuffer selects the buffer the following matches apply to:
-	// file_data, http.uri.
+	// file_data, http.uri. Most take no value; frame names the frame, and
+	// in Suricata 8 some may name a direction (file.data:to_client).
 	RoleStickyBuffer
 	// RoleTransform rewrites the bytes of the active sticky buffer before
 	// the matches that follow: url_decode, to_lowercase, xor. Suricata
@@ -222,6 +245,18 @@ type Keyword struct {
 	// Repeatable reports whether the keyword may appear more than once in
 	// one rule.
 	Repeatable bool
+	// Bits is the width of the unsigned integer that Suricata's integer
+	// parser (rust/src/detect/uint.rs) reads the value into: 8, 16, 32 or
+	// 64. It is zero when that parser does not read the value. In Suricata
+	// it bounds the numbers, and it subjects the value to the parser's
+	// checks: a range must have a number strictly between its bounds, and
+	// a comparison must be satisfiable (no <0, >=0, >max or <=max).
+	Bits uint8
+	// Directional reports whether the value may begin with a direction,
+	// to_client or to_server, and a ',' before the value proper:
+	// filesize:to_server,>100. Suricata 8 reads it; the value after the
+	// direction is of Kind.
+	Directional bool
 	// Replaces names the equivalent keyword in the other dialect, if there
 	// is one. It is set only on a keyword that exists in one dialect:
 	// "http.uri" (Suricata) replaces "http_uri" (Snort 2), while
@@ -233,4 +268,42 @@ type Keyword struct {
 	// empty when the keyword is not deprecated or when nothing replaces it
 	// one for one.
 	Successor string
+	// Added is the first release of the keyword's dialect that has it:
+	// Suricata8 for "ftp.command". It is AnyVersion when every release
+	// the tables describe has it. Like Removed, it is set only on a
+	// keyword of one dialect, a dialect with Versions.
+	Added Version
+	// Removed is the first release of the keyword's dialect that no longer
+	// accepts it: Suricata8 for "ssh.protoversion". It is AnyVersion when
+	// no release the tables describe has removed it.
+	Removed Version
+}
+
+// In reports whether the keyword exists in release v of dialect d: d is one
+// of its Dialects and v is neither before Added nor at or after Removed.
+// For AnyVersion it reports whether some release of d the tables describe
+// has the keyword, which for a dialect without Versions is every keyword of
+// the dialect.
+func (k Keyword) In(d Dialect, v Version) bool {
+	if !k.Dialects.Has(d) {
+		return false
+	}
+	if v != AnyVersion {
+		return k.inRelease(v)
+	}
+	vs := d.versions()
+	if len(vs) == 0 {
+		return true
+	}
+	for _, r := range vs {
+		if k.inRelease(r) {
+			return true
+		}
+	}
+	return false
+}
+
+// inRelease reports whether release v lies within [Added, Removed).
+func (k Keyword) inRelease(v Version) bool {
+	return (k.Added == AnyVersion || v >= k.Added) && (k.Removed == AnyVersion || v < k.Removed)
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -925,12 +926,12 @@ func TestParseEmpty(t *testing.T) {
 }
 
 func TestIsAction(t *testing.T) {
-	for _, w := range []string{"alert", "log", "pass", "drop", "reject", "sdrop", "activate", "dynamic", "rejectsrc", "rejectdst", "rejectboth"} {
+	for _, w := range []string{"alert", "log", "pass", "drop", "reject", "sdrop", "activate", "dynamic", "rejectsrc", "rejectdst", "rejectboth", "config", "accept", "drop:flow", "accept:hook", "alert:"} {
 		if !IsAction(w) {
 			t.Errorf("IsAction(%q) = false", w)
 		}
 	}
-	for _, w := range []string{"", "Alert", "alerts", "tcp", "->", "#"} {
+	for _, w := range []string{"", "Alert", "alerts", "tcp", "->", "#", ":flow", "tcp:all"} {
 		if IsAction(w) {
 			t.Errorf("IsAction(%q) = true", w)
 		}
@@ -1074,5 +1075,88 @@ func TestTriviaOwnership(t *testing.T) {
 				t.Errorf("%s is owned by %s, want %s", tt.prefix, got, tt.parent)
 			}
 		})
+	}
+}
+
+// TestSuricata8Header checks the header syntax Suricata 8 adds: a list of
+// actions, scopes and hooks kept in their tokens, the "=>" direction, and
+// address and port lists without brackets.
+func TestSuricata8Header(t *testing.T) {
+	src := []byte("accept:hook,alert http1:request_line 10.0.0.0/8,!10.1.0.0/16 80,443 => any any (sid:1;)\n" +
+		"drop:flow tcp:all any any <> [1.1.1.1,2.2.2.2],3.3.3.3 any (sid:2;)\n" +
+		"accept:hook, tcp any any -> any any (sid:3;)\n" +
+		"alert tcp 1.1.1.1, any -> any any (sid:4;)\n")
+	f, diags := Parse(src)
+	if got := f.Text(); got != string(src) {
+		t.Fatalf("Text() differs from the source:\n%s", got)
+	}
+	if err := cst.Verify(f); err != nil {
+		t.Fatalf("Verify: %v", err)
+	}
+	rules := f.Rules()
+	if len(rules) != 4 {
+		t.Fatalf("%d rules, want 4", len(rules))
+	}
+
+	h := rules[0].Header
+	if h.Action.Lit != "accept:hook" || len(h.MoreActions) != 1 || h.MoreActions[0].Lit != "alert" || len(h.ActionCommas) != 1 {
+		t.Errorf("rule 1 actions: %q %v %v", h.Action.Lit, h.MoreActions, h.ActionCommas)
+	}
+	if h.Proto.Lit != "http1:request_line" || h.Dir.Lit != "=>" {
+		t.Errorf("rule 1 proto %q dir %q", h.Proto.Lit, h.Dir.Lit)
+	}
+	src1 := h.Src.List
+	if src1 == nil || src1.Bracketed() || len(src1.Items) != 2 || src1.Items[1].Bang == nil || src1.Items[1].Word.Lit != "10.1.0.0/16" {
+		t.Fatalf("rule 1 source is not the bare list 10.0.0.0/8,!10.1.0.0/16: %+v", h.Src)
+	}
+	if sp := h.SrcPort.List; sp == nil || sp.Bracketed() || len(sp.Items) != 2 {
+		t.Errorf("rule 1 source port is not the bare list 80,443: %+v", h.SrcPort)
+	}
+
+	h = rules[1].Header
+	if h.Action.Lit != "drop:flow" || h.Proto.Lit != "tcp:all" || h.Dir.Lit != "<>" {
+		t.Errorf("rule 2: %q %q %q", h.Action.Lit, h.Proto.Lit, h.Dir.Lit)
+	}
+	if d := h.Dst.List; d == nil || d.Bracketed() || len(d.Items) != 2 || d.Items[0].List == nil || !d.Items[0].List.Bracketed() {
+		t.Errorf("rule 2 destination is not the bare list [1.1.1.1,2.2.2.2],3.3.3.3: %+v", h.Dst)
+	}
+
+	var bad []int
+	for _, d := range diags {
+		if d.Rule == RuleBadHeader {
+			bad = append(bad, f.Lines().Position(d.Span.Start).Line)
+		}
+	}
+	if !slices.Equal(bad, []int{3, 4}) {
+		t.Errorf("syntax-bad-header on lines %v, want [3 4]: %v", bad, diags)
+	}
+	if h := rules[2].Header; len(h.ActionCommas) != 1 || len(h.MoreActions) != 0 || h.Proto.Lit != "tcp" {
+		t.Errorf("rule 3, an action list ending in ',': %v %v proto %q", h.ActionCommas, h.MoreActions, h.Proto.Lit)
+	}
+}
+
+// TestConfigDirective checks that a line starting with config is a rule
+// only when it has a body: Snort's configuration directives stay one bad
+// line, as before Suricata's config action was known.
+func TestConfigDirective(t *testing.T) {
+	src := []byte("config classification: not-suspicious,Not Suspicious Traffic,3\n" +
+		"config classification: misc,Misc (generic) activity,3\n" +
+		"config disable_decode_alerts\n" +
+		"config dns any any -> any any (dns.query; content:\"x\"; config:logging disable,type tx,scope tx; sid:1;)\n" +
+		"config:packet tcp any any -> any any (sid:2;)\n")
+	f, diags := Parse(src)
+	if got := f.Text(); got != string(src) {
+		t.Fatalf("Text() differs from the source:\n%s", got)
+	}
+	if n := len(f.Rules()); n != 2 {
+		t.Errorf("%d rules, want 2 (the config rules with a body)", n)
+	}
+	if len(diags) != 3 {
+		t.Fatalf("%d diagnostics, want one per directive line: %v", len(diags), diags)
+	}
+	for _, d := range diags {
+		if d.Rule != RuleBadHeader || !strings.Contains(d.Message, `got "config"`) {
+			t.Errorf("diagnostic %v, want syntax-bad-header at the config directive", d)
+		}
 	}
 }

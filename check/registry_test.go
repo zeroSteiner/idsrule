@@ -154,15 +154,18 @@ func TestRegisteredSet(t *testing.T) {
 		style        bool
 	}{
 		{"content-depth-too-short", diag.SeverityError, false, false},
+		{"content-md5-invalid", diag.SeverityError, true, false},
 		{"content-snort3-modifiers", diag.SeverityError, false, false},
 		{"continuation-trailing-whitespace", diag.SeverityWarning, false, false},
 		{"dialect-unknown", diag.SeverityWarning, false, false},
 		{"header-invalid-action", diag.SeverityError, true, false},
 		{"header-invalid-address", diag.SeverityError, false, false},
+		{"header-invalid-direction", diag.SeverityError, true, false},
 		{"header-invalid-port", diag.SeverityError, false, false},
 		{"header-invalid-protocol", diag.SeverityError, true, false},
 		{"keyword-deprecated", diag.SeverityWarning, true, false},
 		{"keyword-unknown", diag.SeverityWarning, false, false},
+		{"keyword-version", diag.SeverityError, true, false},
 		{"keyword-wrong-dialect", diag.SeverityError, true, false},
 		{"modifier-without-content", diag.SeverityError, true, false},
 		{"msg-duplicate", diag.SeverityError, false, false},

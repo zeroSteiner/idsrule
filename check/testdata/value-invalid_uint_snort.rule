@@ -1,0 +1,4 @@
+# lint: dialect=snort2
+# Snort 2.9's ranges include their bounds; Suricata's checks do not apply.
+alert tcp any any -> any any (msg:"a"; dsize:5<>6; sid:1; rev:1;)
+alert icmp any any -> any any (msg:"b"; itype:<0; sid:2; rev:1;)

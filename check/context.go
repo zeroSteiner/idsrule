@@ -22,6 +22,10 @@ type Context struct {
 	// Dialect is the dialect the file is written in. A check with
 	// NeedsDialect set never sees Unknown.
 	Dialect dialect.Dialect
+	// Version is the release of Dialect the rules are written for, or
+	// dialect.AnyVersion to hold them to what any release accepts. It is
+	// AnyVersion whenever Dialect has no such release.
+	Version dialect.Version
 	// Policy is what the rules are held to.
 	Policy Policy
 	// SIDs is the cross-file SID index, or nil when sids are only checked
@@ -49,7 +53,9 @@ func (c *Context) Report(span source.Span, format string, args ...any) *diag.Dia
 }
 
 // Keyword looks up an option's keyword in the context's dialect, or in any
-// dialect when the Dialect is Unknown.
+// dialect when the Dialect is Unknown. It ignores the Version: a keyword of
+// the dialect is found whichever releases have it (keyword-version reports
+// the ones that do not).
 func (c *Context) Keyword(o *cst.Option) (dialect.Keyword, bool) {
 	if c.Dialect == dialect.Unknown {
 		return dialect.LookupAny(o.Name())
@@ -66,6 +72,18 @@ func (c *Context) ValueSpanAt(o *cst.Option, logicalOff int) source.Span {
 	vs := o.ValueSpan()
 	start := at(logicalOff)
 	return source.Span{Start: start, End: min(start+1, vs.End)}
+}
+
+// at reports whether the context names release v of the dialect or a
+// later one. It is false for AnyVersion.
+func (c *Context) at(v dialect.Version) bool {
+	return c.Version != dialect.AnyVersion && c.Version >= v
+}
+
+// before reports whether the context names a release of the dialect
+// earlier than v. It is false for AnyVersion.
+func (c *Context) before(v dialect.Version) bool {
+	return c.Version != dialect.AnyVersion && c.Version < v
 }
 
 // IndexSIDs records the file's sids in c.SIDs: in one atomic step it

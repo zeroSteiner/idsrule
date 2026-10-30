@@ -1,0 +1,8 @@
+# lint: dialect=suricata version=7 checks=keyword-version,keyword-deprecated
+# expect: keyword-version error ""ftp.command" requires suricata 8.0 or later"
+alert ftp any any -> any any (msg:"a"; ftp.command; content:"PASS"; sid:1; rev:1;)
+# expect: keyword-deprecated warning ""ssh.protoversion" is deprecated in suricata; use "ssh.proto""
+alert ssh any any -> any any (msg:"b"; ssh.protoversion:2.0; sid:2; rev:1;)
+alert mqtt any any -> any any (msg:"c"; mqtt.connack.return_code:0; sid:3; rev:1;)
+# expect: keyword-version error ""http2.header" was removed in suricata 7.0"
+alert http2 any any -> any any (msg:"d"; http2.header; content:"x"; sid:4; rev:1;)

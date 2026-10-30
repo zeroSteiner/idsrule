@@ -71,6 +71,15 @@ type Policy struct {
 	// NormalizeMsg canonicalizes a msg before messages are compared, for
 	// instance to find duplicates. nil means DefaultNormalizeMsg.
 	NormalizeMsg func(string) string
+	// Firewall says the Suricata files are firewall rule files, which
+	// Suricata 8 loads apart from the other rules. Their rules may use the
+	// accept action and list several actions, and are held to what
+	// Suricata requires of them: the first action is accept, config, drop
+	// or reject, the others alert or pass, pass only after accept, an
+	// action scope is given, and the direction is not "=>". Outside a
+	// firewall file the accept action is an error. It has no effect on
+	// Snort 2.9 files.
+	Firewall bool
 	// Style configures the cosmetic checks.
 	Style StylePolicy
 }

@@ -1,0 +1,13 @@
+# lint: dialect=snort2
+alert tcp any any -> any any (msg:"a"; dsize:>5; sid:1; rev:1;)
+alert tcp any any -> any any (msg:"b"; dsize:5<>10; sid:2; rev:1;)
+# expect: value-invalid error "dsize: a hex number is Suricata syntax, which snort2 does not read"
+alert tcp any any -> any any (msg:"c"; dsize:0x10; sid:3; rev:1;)
+# expect: value-invalid error "dsize: a size unit is Suricata syntax, which snort2 does not read"
+alert tcp any any -> any any (msg:"d"; dsize:1kb; sid:4; rev:1;)
+# expect: value-invalid error "itype: a negated range is Suricata syntax, which snort2 does not read"
+alert icmp any any -> any any (msg:"e"; itype:!1-5; sid:5; rev:1;)
+# expect: value-invalid error "dsize: a bitmask test is Suricata syntax, which snort2 does not read"
+alert tcp any any -> any any (msg:"f"; dsize:&0xf0=0x10; sid:6; rev:1;)
+# expect: value-invalid error "urilen: a hex number is Suricata syntax, which snort2 does not read"
+alert tcp any any -> any any (msg:"g"; urilen:0x10,raw; sid:7; rev:1;)

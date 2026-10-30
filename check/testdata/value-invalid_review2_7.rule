@@ -1,0 +1,3 @@
+# lint: dialect=suricata version=7
+# expect: value-invalid error "threshold: multiplier requires suricata 8.0 or later"
+alert tcp any any -> any any (msg:"a"; threshold:type limit, track by_src, count 1, seconds 60, multiplier 3; sid:1; rev:1;)

@@ -24,23 +24,12 @@ go get github.com/zeroSteiner/idsrule
 The module needs Go 1.24 or later and has no dependencies outside the
 standard library.
 
-The repository is private, so the go command must be told to fetch it
-directly from GitHub rather than through the public module proxy and
-checksum database, and git needs credentials that can read it:
-
-```sh
-go env -w GOPRIVATE=github.com/zeroSteiner/idsrule
-# then let git authenticate, for example over SSH:
-git config --global url."git@github.com:".insteadOf "https://github.com/"
-```
-
-In CI, set `GOPRIVATE` in the job's environment and configure git with a
-token that can read the repository before the first `go` command runs.
-Workflows that GitHub runs for pull requests from forks get no secrets,
-so they cannot fetch a private module at all: a consumer that takes
-contributions through forks, as initial-access-community does, needs this
-repository to be public or a vendored copy (`go mod vendor`) committed in
-its own tree.
+The repository is public, so the go command fetches the module through
+the public module proxy and checksum database like any other: no
+credentials and no `GOPRIVATE` setting are needed, and CI jobs, those
+GitHub runs for pull requests from forks included, can fetch it. A
+`GOPRIVATE` setting left over from when the repository was private still
+works, since git can read it without credentials, but it can go.
 
 ## Quick start
 
@@ -208,8 +197,10 @@ recovers at the granularity of a header part, an option or a line, so one
 bad rule never costs the rest of the file. The tree references `src` directly, so do not modify `src` after
 parsing.
 
-**Dialect-agnostic parse, dialect-aware checks.** The parser knows only
-the grammar Snort 2.9 and Suricata share. What the options mean comes from
+**Dialect-agnostic parse, dialect-aware checks.** The parser reads the
+grammar of both dialects, Suricata 8's header extensions included (action
+scopes and lists, protocol hooks, `=>`, address and port lists without
+brackets); the checks report each extension where it does not belong. What the options mean comes from
 the keyword tables of the `dialect` package and is applied by the checks,
 which run for one dialect: `Options.Dialect` or, when that is
 `DialectUnknown`, the dialect detected from the file name (`*.snort.rule`,
@@ -217,14 +208,32 @@ which run for one dialect: `Options.Dialect` or, when that is
 unknown gets a `dialect-unknown` warning and the checks that need a dialect
 are skipped.
 
-**Options, Policy, Selection.** `Options` holds the dialect, the `Policy`,
+**Versions.** `Options.Version` names the release of the dialect the rules
+are written for: `VersionSuricata7` or `VersionSuricata8`
+(`ParseVersion("8")` reads one from a configuration). The zero value,
+`VersionAny`, holds rules to what any release the tables describe accepts:
+a keyword that only Suricata 8 has passes, and one that 8.0 removed is a
+warning. With a release set, the checks hold the rules to that release:
+`keyword-version` reports keywords it lacks, and the header and value
+checks report syntax it does not read, such as `=>`, hooks or hex
+integers in 7.0. A version applies to the files of a dialect that has
+it, and Snort 2.9 has none.
+
+**Firewall rules.** Suricata 8 loads firewall rules from files of their
+own. Set `Policy.Firewall` when linting them: the `accept` action and
+action lists such as `accept:hook,alert` are then valid, and
+`header-invalid-action` holds the rules to what Suricata requires of
+firewall rules. Outside firewall files, `accept` is an error.
+
+**Options, Policy, Selection.** `Options` holds the dialect and version, the `Policy`,
 the `Selection` and the optional `SIDIndex`; `DefaultOptions()` detects
 the dialect, requires a rev and runs every non-style check. The `Policy`
 says what the rules are held to: the sid range (`SIDMin`, `SIDMax`), the
 placeholder threshold (`PlaceholderBelow`: a sid below it is a draft and
 is exempt from the sid checks), whether a rev is required (`RequireRev`),
 the msg prefix (`MsgPrefix`), how messages are normalized before
-duplicates are compared (`NormalizeMsg`), and the style rules (`Style`).
+duplicates are compared (`NormalizeMsg`), whether the files are Suricata
+firewall rules (`Firewall`), and the style rules (`Style`).
 The `Selection` says which checks run and how they report: every non-style
 check runs by default, and `Enable`, `Disable`, `Style` and `Severity`
 adjust that per run (`Disable` also removes a style check that `Style`
@@ -272,15 +281,18 @@ selected.
 | Check | Severity | Style | Needs dialect | Fix | Reports |
 |---|---|---|---|---|---|
 | `content-depth-too-short` | error | no | no | no | a `depth` or `within` is smaller than the decoded content it modifies, so it can never match and the engines reject the rule |
+| `content-md5-invalid` | error | no | yes | no | a content in a Suricata MD5 buffer (ja3.hash, ja3s.hash, ssh.hassh, ssh.hassh.server, quic.cyu.hash) is not 32 bytes, which Suricata refuses, or not all hex digits, which never matches and which Suricata 8 refuses (a warning before 8.0 or with no release set) |
 | `content-snort3-modifiers` | error | no | no | yes | a content value carries Snort 3 style modifiers after its closing quote |
 | `continuation-trailing-whitespace` | warning | no | no | yes | spaces or tabs follow a line continuation's backslash |
 | `dialect-unknown` | warning | no | no | no | the dialect is unknown, so the checks that need one were skipped |
-| `header-invalid-action` | error | no | yes | no | the rule action is not one of the dialect's |
-| `header-invalid-address` | error | no | no | no | an address is not any, a $variable, an IP literal with an optional /prefix, or a list of those (a group the parser rejected is left to its syntax diagnostic) |
-| `header-invalid-port` | error | no | no | no | a port is not any, a $variable, a number, a range of 0 to 65535, or a list of those (a group the parser rejected is left to its syntax diagnostic) |
-| `header-invalid-protocol` | error | no | yes | no | the protocol is not one of the dialect's names (compared without regard to case; protocol numbers are not accepted) |
+| `header-invalid-action` | error | no | yes | no | the rule action is not one of the dialect's or the release's, has a scope the action does not take, or breaks the rules for firewall actions (see Policy.Firewall) |
+| `header-invalid-address` | error | no | no | no | an address is not any, a $variable, an IP literal with an optional /prefix, or a list of those, or is a list without brackets in Snort 2.9 (a group the parser rejected is left to its syntax diagnostic) |
+| `header-invalid-direction` | error | no | yes | no | the direction is "=>" where it is not allowed: in Snort 2.9, in Suricata before 8.0, or in a firewall rule |
+| `header-invalid-port` | error | no | no | no | a port is not any, a $variable, a number, a range of 0 to 65535, or a list of those, or is a list without brackets in Snort 2.9 (a group the parser rejected is left to its syntax diagnostic) |
+| `header-invalid-protocol` | error | no | yes | no | the protocol is not one of the dialect's or the release's names (compared without regard to case; protocol numbers are not accepted), or has a hook it cannot take |
 | `keyword-deprecated` | warning | no | yes | no | an option keyword is deprecated in the file's dialect |
 | `keyword-unknown` | warning | no | no | no | an option keyword is not known to any dialect |
+| `keyword-version` | error | no | yes | no | an option keyword does not exist in the release of the dialect the rules are written for: it came later or was removed (with no release set, a keyword that some release removed is a warning, and one that no release has an error) |
 | `keyword-wrong-dialect` | error | no | yes | no | an option keyword exists only in the other dialect |
 | `modifier-without-content` | error | no | yes | no | a content modifier appears before any payload match of the rule, or a buffer transform or buffer test before any sticky buffer |
 | `msg-duplicate` | error | no | no | no | two rules of the file have the same msg once normalized with Policy.NormalizeMsg |
@@ -374,9 +386,11 @@ holds every fix to that.
 ## Extending the dialect tables
 
 What the checks know about keywords is data: each keyword is one row of a
-table in the `dialect` package that says which dialects have it, where it
-is deprecated and in favour of what, whether it takes a value and of which
-grammar, what role it plays and whether it may repeat. Adding or correcting
+table in the `dialect` package that says which dialects have it, which
+Suricata release added or removed it, where it is deprecated and in favour
+of what, whether it takes a value and of which grammar (with the integer
+width Suricata reads it into), what role it plays and whether it may
+repeat. Adding or correcting
 a keyword is a one-row change, checked by the table invariant tests and the
 corpus coverage tests. [`dialect/README.md`](dialect/README.md) describes
 the fields, the invariants and the rule to follow when the documentation
@@ -409,6 +423,26 @@ directly in it, fails every corpus test. Every file name must carry its
 dialect (`*.snort.rule` or `*.suricata.rule`). `TestCorpusLint` pins the
 number of findings the reference corpus produces per check, so another
 corpus will fail it while still exercising everything else.
+
+The reference corpus is the rule feed of
+[vulncheck-oss/initial-access-community](https://github.com/vulncheck-oss/initial-access-community),
+which keeps each rule file in a directory of its own
+(`feed/<cve>/<cve>.suricata.rule`). The corpus tests read only the files
+directly inside `IDSRULE_CORPUS`, so clone the rule files alone and link
+them into one directory. `--filter=blob:none` and the sparse checkout
+fetch the contents of the `*.rule` files and of nothing else, and their
+names are unique across the feed, so none overwrites another:
+
+```sh
+git clone --depth 1 --filter=blob:none --no-checkout https://github.com/vulncheck-oss/initial-access-community
+cd initial-access-community
+git sparse-checkout set --no-cone '*.rule'
+git checkout
+mkdir -p ../idsrule-corpus
+for f in feed/*/*.rule; do ln -s "$PWD/$f" ../idsrule-corpus/; done
+cd ..
+IDSRULE_CORPUS=$PWD/idsrule-corpus go test -race ./...
+```
 
 The lexer and the parser have fuzz targets, `FuzzLex` and `FuzzParse`,
 seeded with their test inputs and, when `IDSRULE_CORPUS` is set, with every

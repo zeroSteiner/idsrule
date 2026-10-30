@@ -36,10 +36,12 @@ var commonKeywords = []Keyword{
 	{Name: "byte_math", Dialects: Both, Value: Required, Kind: KindRaw, Role: RolePayload, Repeatable: true},
 	{Name: "base64_decode", Dialects: Both, Value: Optional, Kind: KindBase64Decode, Role: RolePayload, Repeatable: true},
 	{Name: "base64_data", Dialects: Both, Value: NoValue, Kind: KindNone, Role: RoleStickyBuffer, Repeatable: true},
-	{Name: "file_data", Dialects: Both, Value: NoValue, Kind: KindNone, Role: RoleStickyBuffer, Repeatable: true},
+	// file_data takes an optional value in both engines, mime in Snort 2.9
+	// and a direction in Suricata 8, so the value is not decoded.
+	{Name: "file_data", Dialects: Both, Value: Optional, Kind: KindRaw, Role: RoleStickyBuffer, Repeatable: true},
 	{Name: "pkt_data", Dialects: Both, Value: NoValue, Kind: KindNone, Role: RoleStickyBuffer, Repeatable: true},
-	{Name: "urilen", Dialects: Both, Value: Required, Kind: KindUrilen, Role: RolePayload},
-	{Name: "dsize", Dialects: Both, Value: Required, Kind: KindRelInt, Role: RoleNonPayload},
+	{Name: "urilen", Dialects: Both, Value: Required, Kind: KindUrilen, Role: RolePayload, Bits: 16},
+	{Name: "dsize", Dialects: Both, Value: Required, Kind: KindRelInt, Role: RoleNonPayload, Bits: 16},
 	// replace is a content-like quoted pattern that overwrites the match.
 	{Name: "replace", Dialects: Both, Value: Required, Kind: KindContent, Role: RoleModifier, Repeatable: true},
 	// asn1 takes a comma-separated list of checks with arguments.
@@ -57,8 +59,8 @@ var commonKeywords = []Keyword{
 	// and ip_proto takes protocol names, so both are KindRaw; fragbits,
 	// flags, rpc and stream_size have grammars of their own.
 	{Name: "ttl", Dialects: Both, Value: Required, Kind: KindRaw, Role: RoleNonPayload},
-	{Name: "tos", Dialects: Both, Value: Required, Kind: KindRelInt, Role: RoleNonPayload},
-	{Name: "id", Dialects: Both, Value: Required, Kind: KindUint, Role: RoleNonPayload},
+	{Name: "tos", Dialects: Both, Value: Required, Kind: KindTos, Role: RoleNonPayload},
+	{Name: "id", Dialects: Both, Value: Required, Kind: KindQuotedUint, Role: RoleNonPayload},
 	{Name: "ipopts", Dialects: Both, Value: Required, Kind: KindIdent, Role: RoleNonPayload},
 	{Name: "fragbits", Dialects: Both, Value: Required, Kind: KindRaw, Role: RoleNonPayload},
 	{Name: "fragoffset", Dialects: Both, Value: Required, Kind: KindRelInt, Role: RoleNonPayload},
@@ -66,10 +68,10 @@ var commonKeywords = []Keyword{
 	{Name: "seq", Dialects: Both, Value: Required, Kind: KindUint, Role: RoleNonPayload},
 	{Name: "ack", Dialects: Both, Value: Required, Kind: KindUint, Role: RoleNonPayload},
 	{Name: "window", Dialects: Both, Value: Required, Kind: KindRelInt, Role: RoleNonPayload},
-	{Name: "itype", Dialects: Both, Value: Required, Kind: KindRelInt, Role: RoleNonPayload},
-	{Name: "icode", Dialects: Both, Value: Required, Kind: KindRelInt, Role: RoleNonPayload},
-	{Name: "icmp_id", Dialects: Both, Value: Required, Kind: KindUint, Role: RoleNonPayload},
-	{Name: "icmp_seq", Dialects: Both, Value: Required, Kind: KindUint, Role: RoleNonPayload},
+	{Name: "itype", Dialects: Both, Value: Required, Kind: KindRelInt, Role: RoleNonPayload, Bits: 8},
+	{Name: "icode", Dialects: Both, Value: Required, Kind: KindRelInt, Role: RoleNonPayload, Bits: 8},
+	{Name: "icmp_id", Dialects: Both, Value: Required, Kind: KindQuotedUint, Role: RoleNonPayload},
+	{Name: "icmp_seq", Dialects: Both, Value: Required, Kind: KindQuotedUint, Role: RoleNonPayload},
 	{Name: "rpc", Dialects: Both, Value: Required, Kind: KindRaw, Role: RoleNonPayload},
 	{Name: "ip_proto", Dialects: Both, Value: Required, Kind: KindRaw, Role: RoleNonPayload},
 	{Name: "sameip", Dialects: Both, Value: NoValue, Kind: KindNone, Role: RoleNonPayload},

@@ -1,0 +1,8 @@
+# lint: dialect=suricata version=7
+# expect: value-invalid error "file.data takes no value in suricata 7.0; a direction requires 8.0"
+alert http any any -> any any (msg:"a"; file.data:to_client; content:"x"; sid:1; rev:1;)
+# expect: value-invalid error "filesize: a direction requires suricata 8.0 or later"
+alert http any any -> any any (msg:"b"; filesize:to_server,>100; sid:2; rev:1;)
+alert http any any -> any any (msg:"c"; file.data; content:"x"; filesize:>100; sid:3; rev:1;)
+# expect: value-invalid error "file_data takes no value in suricata 7.0; a direction requires 8.0"
+alert http any any -> any any (msg:"d"; file_data:to_client; content:"x"; sid:4; rev:1;)

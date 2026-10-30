@@ -1,0 +1,16 @@
+# lint: dialect=suricata
+alert http1:request_line any any -> any any (msg:"a"; sid:1; rev:1;)
+alert dns:request_complete any any -> any any (msg:"b"; sid:2; rev:1;)
+alert ssh:response_banner_done any any -> any any (msg:"c"; sid:3; rev:1;)
+alert http1:<request_headers any any -> any any (msg:"d"; sid:4; rev:1;)
+alert tcp:all any any -> any any (msg:"e"; sid:5; rev:1;)
+alert pkthdr:pre_flow any any -> any any (msg:"f"; sid:6; rev:1;)
+alert doh2 any any -> any any (msg:"g"; sid:7; rev:1;)
+# expect: header-invalid-protocol error ""request_line" is not a packet hook; use flow_start, pre_flow, pre_stream, all"
+alert tcp:request_line any any -> any any (msg:"h"; sid:8; rev:1;)
+# expect: header-invalid-protocol error ""Request-Line" is not a hook: use request_started, request_complete, response_started, response_complete or a progress state of http1"
+alert http1:Request-Line any any -> any any (msg:"i"; sid:9; rev:1;)
+# expect: header-invalid-protocol error """ is not a hook"
+alert http1: any any -> any any (msg:"j"; sid:10; rev:1;)
+# expect: header-invalid-protocol error ""gre" is not a suricata protocol"
+alert gre:all any any -> any any (msg:"k"; sid:11; rev:1;)

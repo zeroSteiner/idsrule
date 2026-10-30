@@ -1,0 +1,17 @@
+# lint: dialect=suricata
+# Suricata's integer parser: numbers fit the keyword's width, ranges
+# exclude their bounds, and comparisons must be satisfiable.
+alert icmp any any -> any any (msg:"a"; itype:255; icode:0<>2; sid:1; rev:1;)
+alert tcp any any -> any any (msg:"b"; dsize:>=1; dsize:<65535; sid:2; rev:1;)
+alert enip any any -> any any (msg:"c"; enip.revision:0x10-0x20; enip.status:success; sid:3; rev:1;)
+alert http any any -> any any (msg:"d"; filesize:<=9223372036854775807; sid:4; rev:1;)
+# expect: value-invalid error "itype: 300 does not fit in 8 bits (at most 255)"
+alert icmp any any -> any any (msg:"e"; itype:300; sid:5; rev:1;)
+# expect: value-invalid error "dsize: no number lies strictly between 5 and 6, and Suricata's ranges exclude their bounds"
+alert tcp any any -> any any (msg:"f"; dsize:5-6; sid:6; rev:1;)
+# expect: value-invalid error "dsize: <0 compares with the smallest number, so it is never or always true; Suricata refuses it"
+alert tcp any any -> any any (msg:"g"; dsize:<0; sid:7; rev:1;)
+# expect: value-invalid error "itype: >255 compares with the largest 8-bit number, so it is never or always true; Suricata refuses it"
+alert icmp any any -> any any (msg:"h"; itype:>255; sid:8; rev:1;)
+# expect: value-invalid error "ntp.version: 256 does not fit in 8 bits (at most 255)"
+alert ntp any any -> any any (msg:"i"; ntp.version:0x100; sid:9; rev:1;)

@@ -1,0 +1,14 @@
+# lint: dialect=suricata checks=keyword-unknown,value-invalid
+# The FTP keywords of Suricata 8, with the values its documentation shows.
+alert ftp any any -> any any (msg:"a"; ftp.command; content:"PASS"; sid:1; rev:1;)
+alert ftp any any -> any any (msg:"b"; ftp.command; content:"USER"; ftp.command_data; content:"anonymous"; sid:2; rev:1;)
+alert ftp any any -> any any (msg:"c"; ftp.reply; content:"Opening BINARY mode"; ftp.completion_code; content:"150"; sid:3; rev:1;)
+alert ftp any any -> any any (msg:"d"; ftp.dynamic_port: 59914; sid:4; rev:1;)
+alert ftp any any -> any any (msg:"e"; ftp.dynamic_port: 59913-59915; sid:5; rev:1;)
+alert ftp any any -> any any (msg:"f"; ftp.dynamic_port: =59914; sid:6; rev:1;)
+alert ftp any any -> any any (msg:"g"; ftp.command; content:"PORT"; ftp.mode: active; sid:7; rev:1;)
+alert ftp any any -> any any (msg:"h"; ftp.mode: passive; sid:8; rev:1;)
+alert ftp any any -> any any (msg:"i"; ftp.reply_received: yes; sid:9; rev:1;)
+alert ftp any any -> any any (msg:"j"; ftp.reply_received: 0; sid:10; rev:1;)
+# expect: value-invalid error "ftp.reply_received: invalid character"
+alert ftp any any -> any any (msg:"k"; ftp.reply_received: "yes"; sid:11; rev:1;)

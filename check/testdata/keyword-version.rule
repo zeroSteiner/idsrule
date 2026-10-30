@@ -1,0 +1,14 @@
+# lint: dialect=suricata checks=keyword-version,keyword-deprecated
+# With no release set: a keyword some release has is fine, one a later
+# release removed is a warning, and one no release has is an error.
+alert ftp any any -> any any (msg:"a"; ftp.command; content:"PASS"; sid:1; rev:1;)
+# The two checks report independently: deprecated, and gone in 8.0.
+# expect: keyword-deprecated @+2 warning ""ssh.protoversion" is deprecated in suricata; use "ssh.proto""
+# expect: keyword-version warning ""ssh.protoversion" was removed in suricata 8.0; use "ssh.proto""
+alert ssh any any -> any any (msg:"b"; ssh.protoversion:2.0; sid:2; rev:1;)
+# expect: keyword-version warning ""mqtt.connack.return_code" was removed in suricata 8.0; use "mqtt.reason_code""
+alert mqtt any any -> any any (msg:"c"; mqtt.connack.return_code:0; sid:3; rev:1;)
+# expect: keyword-version error ""http2.header" was removed in suricata 7.0"
+alert http2 any any -> any any (msg:"d"; http2.header; content:"x"; sid:4; rev:1;)
+# expect: keyword-deprecated warning ""http_uri" is deprecated in suricata; use "http.uri""
+alert http any any -> any any (msg:"e"; content:"x"; http_uri; sid:5; rev:1;)

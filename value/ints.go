@@ -1,6 +1,8 @@
 package value
 
 import (
+	"fmt"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -72,30 +74,64 @@ func ParseIntOrVar(s string) (IntOrVar, error) {
 }
 
 // RelInt is a decoded relational integer: a number with an optional
-// operator, or a range.
+// operator, a range, or a bitmask test.
 type RelInt struct {
-	// Op is "" for a plain number, one of "<", ">", "<=", ">=", "=", "!"
-	// for a comparison, or "<>" or "-" for a range of A and B. The
-	// engines disagree on whether a range includes its bounds, so the
-	// range operator is kept as written.
+	// Op is "" for a plain number; one of "<", ">", "<=", ">=", "=", "!"
+	// for a comparison; "<>" or "-" for a range of A and B, or "!<>" or
+	// "!-" for the numbers outside it; or "&=" or "&!=" for the test that
+	// the value ANDed with the mask A is, or is not, B. The engines
+	// disagree on whether a range includes its bounds, so the range
+	// operator is kept as written.
 	Op string
-	// A is the number, or the lower bound of a range.
-	A int64
-	// B is the upper bound of a range; zero otherwise.
-	B int64
+	// A is the number, the lower bound of a range or the mask of a
+	// bitmask test. Suricata reads numbers up to 64 bits.
+	A uint64
+	// B is the upper bound of a range or the value a bitmask test
+	// compares with; zero otherwise.
+	B uint64
+	// Forms records the forms the value uses beyond plain decimal numbers
+	// with an operator or a range, which Snort 2.9 and Suricata 7 do not
+	// all read.
+	Forms RelIntForm
 }
+
+// RelIntForm is a set of the forms a relational integer may use beyond
+// plain decimal numbers, comparisons and ranges.
+type RelIntForm uint8
+
+const (
+	// FormHex is a number written in hex, "0x1f" (Suricata 8).
+	FormHex RelIntForm = 1 << iota
+	// FormUnit is a number with a kb, mb or gb size unit (Suricata).
+	FormUnit
+	// FormIECUnit is a number with a kib, mib or gib size unit
+	// (Suricata 8).
+	FormIECUnit
+	// FormNegatedRange is a range preceded by '!' (Suricata 8).
+	FormNegatedRange
+	// FormBitmask is a bitmask test, "&M=N" or "&M!=N" (Suricata 8).
+	FormBitmask
+)
 
 // relOps are the comparison operators, longest first so that "<=" is not
 // read as "<".
 var relOps = []string{"<=", ">=", "!=", "<", ">", "=", "!"}
 
-// ParseRelInt decodes a relational integer: N, <N, >N, <=N, >=N, =N, !N
-// (also written !=N), or the ranges N<>M and N-M. Blanks around the
-// operators are allowed. The numbers are unsigned; a range whose lower
-// bound is not below its upper bound is an error.
+// ParseRelInt decodes a relational integer as either engine writes it: N,
+// <N, >N, <=N, >=N, =N, !N (also written !=N), the ranges N<>M and N-M,
+// and what Suricata 8 adds to them: the negated ranges !N<>M and !N-M, the
+// bitmask tests &M=N and &M!=N, and numbers written in hex ("0x1f") or
+// with a size unit ("10kb"; see uintValue). Blanks around the operators
+// are allowed. The numbers are unsigned. A range whose lower bound is not
+// below its upper bound is an error, and so is a bitmask test whose value
+// has bits outside its mask, which Suricata rejects as never matching.
 func ParseRelInt(s string) (RelInt, error) {
 	var r RelInt
 	i := skipBlanks(s, 0)
+	if i < len(s) && s[i] == '&' {
+		return parseBitmask(s, i+1)
+	}
+	var forms RelIntForm
 	for _, op := range relOps {
 		if strings.HasPrefix(s[i:], op) {
 			r.Op = op
@@ -103,39 +139,44 @@ func ParseRelInt(s string) (RelInt, error) {
 			break
 		}
 	}
-	if r.Op == "!=" {
-		r.Op = "!"
-	}
 	i = skipBlanks(s, i)
-	a, n, err := number(s, i)
+	a, n, f, err := uintValue(s, i)
 	if err != nil {
 		return RelInt{}, err
 	}
-	r.A = a
+	r.A, forms = a, f
 	i = skipBlanks(s, i+n)
 	if i == len(s) {
+		if r.Op == "!=" {
+			r.Op = "!"
+		}
+		r.Forms = forms
 		return r, nil
 	}
-	if r.Op != "" {
+	// Only a bare '!' may precede a range, negating it.
+	if r.Op != "" && r.Op != "!" {
 		return RelInt{}, errAt(i, "unexpected text after number")
 	}
 	switch {
 	case strings.HasPrefix(s[i:], "<>"):
-		r.Op = "<>"
+		r.Op += "<>"
 		i += 2
 	case s[i] == '-':
-		r.Op = "-"
+		r.Op += "-"
 		i++
 	default:
 		return RelInt{}, errAt(i, "unexpected text after number")
 	}
+	if r.Op[0] == '!' {
+		forms |= FormNegatedRange
+	}
 	i = skipBlanks(s, i)
 	bOff := i
-	b, n, err := number(s, i)
+	b, n, f, err := uintValue(s, i)
 	if err != nil {
 		return RelInt{}, err
 	}
-	r.B = b
+	r.B, r.Forms = b, forms|f
 	if i = skipBlanks(s, i+n); i != len(s) {
 		return RelInt{}, errAt(i, "unexpected text after range")
 	}
@@ -145,9 +186,102 @@ func ParseRelInt(s string) (RelInt, error) {
 	return r, nil
 }
 
-// number decodes the run of digits at s[i:] and returns its value and
-// length.
-func number(s string, i int) (int64, int, error) {
+// parseBitmask decodes the rest of a bitmask test, "M=N" or "M!=N", from
+// s[i:], just after its '&'.
+func parseBitmask(s string, i int) (RelInt, error) {
+	i = skipBlanks(s, i)
+	a, n, fa, err := uintValue(s, i)
+	if err != nil {
+		return RelInt{}, err
+	}
+	r := RelInt{Op: "&=", A: a}
+	i = skipBlanks(s, i+n)
+	switch {
+	case strings.HasPrefix(s[i:], "!="):
+		r.Op = "&!="
+		i += 2
+	case strings.HasPrefix(s[i:], "="):
+		i++
+	default:
+		return RelInt{}, errAt(i, `expected "=" or "!=" after the mask`)
+	}
+	i = skipBlanks(s, i)
+	bOff := i
+	b, n, fb, err := uintValue(s, i)
+	if err != nil {
+		return RelInt{}, err
+	}
+	r.B, r.Forms = b, FormBitmask|fa|fb
+	if i = skipBlanks(s, i+n); i != len(s) {
+		return RelInt{}, errAt(i, "unexpected text after bitmask")
+	}
+	if b&a != b {
+		return RelInt{}, errAt(bOff, "bitmask value has bits outside the mask, so it can never match")
+	}
+	return r, nil
+}
+
+// sizeUnits are the unit suffixes Suricata accepts after a decimal
+// number, matched without regard to case, with the form each is.
+var sizeUnits = []struct {
+	name string
+	mult uint64
+	form RelIntForm
+}{
+	{"kib", 1 << 10, FormIECUnit}, {"kb", 1 << 10, FormUnit},
+	{"mib", 1 << 20, FormIECUnit}, {"mb", 1 << 20, FormUnit},
+	{"gib", 1 << 30, FormIECUnit}, {"gb", 1 << 30, FormUnit},
+}
+
+// uintValue decodes the number at s[i:] as Suricata 8 reads one, "0x"
+// followed by hex digits or decimal digits with an optional size unit,
+// and returns its value, the length of its text and the forms it uses.
+// Snort 2.9 reads only the plain decimal digits.
+func uintValue(s string, i int) (uint64, int, RelIntForm, error) {
+	if strings.HasPrefix(s[i:], "0x") {
+		n := 2
+		for i+n < len(s) && isHex(s[i+n]) {
+			n++
+		}
+		// "0x" with no hex digit after it is the number 0 followed by
+		// an 'x', which the caller rejects.
+		if n > 2 {
+			v, err := strconv.ParseUint(s[i+2:i+n], 16, 64)
+			if err != nil {
+				return 0, 0, 0, errAt(i, "number too large")
+			}
+			return v, n, FormHex, nil
+		}
+	}
+	v, n, err := number(s, i)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	rest := s[i+n:]
+	for _, u := range sizeUnits {
+		if len(rest) >= len(u.name) && strings.EqualFold(rest[:len(u.name)], u.name) {
+			if v > math.MaxUint64/u.mult {
+				return 0, 0, 0, errAt(i, "number too large")
+			}
+			return v * u.mult, n + len(u.name), u.form, nil
+		}
+	}
+	return v, n, 0, nil
+}
+
+// Suricata7 reports whether Suricata 7 reads the value: it uses no
+// Suricata 8 form, and a kb, mb or gb unit only on a plain number or
+// one after "=".
+func (r RelInt) Suricata7() bool {
+	if r.Forms&(FormHex|FormIECUnit|FormNegatedRange|FormBitmask) != 0 {
+		return false
+	}
+	return r.Forms&FormUnit == 0 || r.Op == "" || r.Op == "="
+}
+
+// number decodes the run of digits at s[i:], an unsigned 64-bit number,
+// and returns its value and length.
+func number(s string, i int) (uint64, int, error) {
 	n := 0
 	for i+n < len(s) && isDigit(s[i+n]) {
 		n++
@@ -155,8 +289,8 @@ func number(s string, i int) (int64, int, error) {
 	if n == 0 {
 		return 0, 0, errAt(i, "expected a number")
 	}
-	v, err := parseDigits(part{s[i : i+n], i})
-	return v, n, err
+	v, err := ParseUint(s[i : i+n])
+	return v, n, shift(err, i)
 }
 
 // Urilen is a decoded urilen value.
@@ -188,4 +322,102 @@ func ParseUrilen(s string) (Urilen, error) {
 		return Urilen{}, errAt(buf.off, `expected "norm" or "raw"`)
 	}
 	return Urilen{RelInt: r, Buffer: buf.text}, nil
+}
+
+// Tos is a decoded tos value.
+type Tos struct {
+	// Negated is set when the value starts with '!'.
+	Negated bool
+	// Value is the type of service.
+	Value uint8
+}
+
+// ParseTos decodes a tos value: an optional '!' and blanks, then a decimal
+// number of up to three digits or, as Suricata writes it, 'x' or 'X' and
+// one or two hex digits. The number is at most 255.
+func ParseTos(s string) (Tos, error) {
+	var t Tos
+	i := 0
+	if strings.HasPrefix(s, "!") {
+		t.Negated = true
+		i = skipBlanks(s, 1)
+	}
+	if i < len(s) && (s[i] == 'x' || s[i] == 'X') {
+		digits := s[i+1:]
+		if len(digits) == 0 || len(digits) > 2 {
+			return Tos{}, errAt(i+1, "expected one or two hex digits")
+		}
+		for j := 0; j < len(digits); j++ {
+			if !isHex(digits[j]) {
+				return Tos{}, errAt(i+1+j, "expected a hex digit")
+			}
+		}
+		v, _ := strconv.ParseUint(digits, 16, 8)
+		t.Value = uint8(v)
+		return t, nil
+	}
+	v, err := ParseUint(s[i:])
+	if err != nil {
+		return Tos{}, shift(err, i)
+	}
+	if v > 255 {
+		return Tos{}, errAt(i, "tos is at most 255")
+	}
+	t.Value = uint8(v)
+	return t, nil
+}
+
+// ParseQuotedUint decodes an unsigned decimal integer that may be written
+// in double quotes, with blanks inside them, as Suricata reads id, icmp_id
+// and icmp_seq: 123, "123" or " 123 ". Like Suricata, it takes either
+// quote without the other.
+func ParseQuotedUint(s string) (uint64, error) {
+	i, j := 0, len(s)
+	if strings.HasPrefix(s, `"`) {
+		i = skipBlanks(s, 1)
+	}
+	if j > i && s[j-1] == '"' {
+		j--
+		for j > i && isBlank(s[j-1]) {
+			j--
+		}
+	}
+	v, err := ParseUint(s[i:j])
+	return v, shift(err, i)
+}
+
+// UintEnum is a decoded KindUintEnum value: a relational integer, or a
+// name.
+type UintEnum struct {
+	// RelInt is the integer when Name is empty.
+	RelInt
+	// Name is the name, without the '!', when the value is one.
+	Name string
+	// Negated is set when the name starts with '!'.
+	Negated bool
+}
+
+// ParseUintEnum decodes an integer as Suricata 8 reads one that may be
+// named: a relational integer as ParseRelInt reads it, or a name (a letter
+// or '_', then letters, digits and '_'), optionally after '!'. Which names
+// a keyword takes is not checked.
+func ParseUintEnum(s string) (UintEnum, error) {
+	if r, err := ParseRelInt(s); err == nil {
+		return UintEnum{RelInt: r}, nil
+	}
+	e := UintEnum{}
+	name := s
+	if strings.HasPrefix(name, "!") {
+		e.Negated, name = true, name[1:]
+	}
+	if name == "" || !isLetter(name[0]) && name[0] != '_' {
+		return UintEnum{}, errAt(0, "expected a number, a comparison or a name")
+	}
+	for i := 1; i < len(name); i++ {
+		if c := name[i]; !isLetter(c) && !isDigit(c) && c != '_' {
+			return UintEnum{}, errAt(len(s)-len(name)+i, fmt.Sprintf("invalid character %q in name", c))
+		}
+	}
+	e.Name = name
+	return e, nil
 }

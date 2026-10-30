@@ -1,0 +1,15 @@
+# lint: dialect=suricata
+# Regressions from the second review.
+alert http any any -> any any (msg:"a"; http.uri; content:"x"; bsize:0xffffffffffffffff; sid:1; rev:1;)
+alert http any any -> any any (msg:"b"; filesize:<18446744073709551615; sid:2; rev:1;)
+# Suricata parses window and fragoffset with regexes of their own.
+# expect: value-invalid error "window: a hex number is not read by Suricata for window"
+alert tcp any any -> any any (msg:"c"; window:0x10; sid:3; rev:1;)
+# expect: value-invalid error "fragoffset: a size unit is not read by Suricata for fragoffset"
+alert ip any any -> any any (msg:"d"; fragoffset:1kb; sid:4; rev:1;)
+# A name is a letter or '_', then letters, digits and '_'.
+# expect: value-invalid error "ntp.mode: expected a number, a comparison or a name"
+alert ntp any any -> any any (msg:"e"; ntp.mode:-1; sid:5; rev:1;)
+# expect: value-invalid error "websocket.opcode: expected a number, a comparison or a name"
+alert websocket any any -> any any (msg:"f"; websocket.opcode:.5; sid:6; rev:1;)
+alert ntp any any -> any any (msg:"g"; ntp.mode:symmetric_active; sid:7; rev:1;)

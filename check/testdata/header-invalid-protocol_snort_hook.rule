@@ -1,0 +1,3 @@
+# lint: dialect=snort2
+# expect: header-invalid-protocol error "snort2 protocols take no hook"
+alert tcp:all any any -> any any (msg:"a"; sid:1; rev:1;)

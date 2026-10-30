@@ -29,6 +29,7 @@ package parser
 import (
 	"cmp"
 	"slices"
+	"strings"
 
 	"github.com/zeroSteiner/idsrule/cst"
 	"github.com/zeroSteiner/idsrule/diag"
@@ -42,10 +43,36 @@ var actions = map[string]bool{
 	"alert": true, "log": true, "pass": true, "drop": true, "reject": true,
 	"sdrop": true, "activate": true, "dynamic": true,
 	"rejectsrc": true, "rejectdst": true, "rejectboth": true,
+	"config": true, "accept": true,
 }
 
-// IsAction reports whether word is a rule action of either dialect.
-func IsAction(word string) bool { return actions[word] }
+// IsAction reports whether word is a rule action of either dialect, on its
+// own or with the scope Suricata 8 writes after a ':' ("drop:flow").
+func IsAction(word string) bool {
+	name, _, _ := strings.Cut(word, ":")
+	return actions[name]
+}
+
+// configDirective reports whether the line at the current token, which
+// starts with an action, is a configuration directive rather than a rule:
+// it starts with the bare word config, as Snort's "config classification:
+// ..." does, and no direction ("->", "<>" or "=>") comes before the first
+// '(' of the line. A Suricata rule with the config action has a header
+// with a direction; a directive's text may hold a '(' but not those.
+func (p *parser) configDirective() bool {
+	if p.peek().Lit != "config" {
+		return false
+	}
+	for _, t := range p.toks[p.pos+1:] {
+		switch {
+		case isDirection(t):
+			return false
+		case t.Kind == token.LParen, t.Kind == token.Newline, t.Kind == token.EOF:
+			return true
+		}
+	}
+	return true
+}
 
 // Parse lexes and parses src. It never fails: the returned file is never
 // nil, its text is src byte for byte, and whatever the input the call
@@ -186,7 +213,7 @@ func (p *parser) parseFile() *cst.File {
 			cst.Seal(c, p.src, 0, ckids...)
 			f.Items = append(f.Items, c)
 			kids = append(kids, c)
-		case t.Kind == token.Word && IsAction(t.Lit):
+		case t.Kind == token.Word && IsAction(t.Lit) && !p.configDirective():
 			r, trailing := p.parseRule(lead)
 			f.Items = append(f.Items, r)
 			kids = append(kids, r)

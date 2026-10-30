@@ -1,0 +1,4 @@
+# lint: dialect=snort2
+# expect: header-invalid-address error "snort2 needs brackets around a list: [10.0.0.0/8,!10.1.0.0/16]"
+alert tcp 10.0.0.0/8,!10.1.0.0/16 any -> any any (msg:"a"; sid:1; rev:1;)
+alert tcp [10.0.0.0/8,!10.1.0.0/16] any -> any any (msg:"b"; sid:2; rev:1;)

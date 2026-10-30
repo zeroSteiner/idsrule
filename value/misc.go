@@ -1,6 +1,9 @@
 package value
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // IsDataAt is a decoded isdataat value.
 type IsDataAt struct {
@@ -171,6 +174,46 @@ func ParseQuoted(s string) (string, error) {
 		}
 	}
 	return "", errAt(len(s), "unterminated string")
+}
+
+// The directions a Suricata 8 option may name.
+const (
+	ToClient = "to_client"
+	ToServer = "to_server"
+)
+
+// ParseDirection decodes a direction: to_client, to_server, or the empty
+// string for none.
+func ParseDirection(s string) (string, error) {
+	switch s {
+	case "", ToClient, ToServer:
+		return s, nil
+	}
+	return "", errAt(0, `expected "to_client" or "to_server"`)
+}
+
+// CutDirection splits the direction off the start of a value of a
+// Directional keyword the way Suricata 8 does: "to_client" or
+// "to_server", then either nothing or a ',' and the rest of the value,
+// blanks allowed around the comma. It returns the direction, the rest and
+// the offset of the rest in s, with ok false (and s whole as the rest)
+// when s does not start with a direction followed by nothing or a ','.
+func CutDirection(s string) (dir, rest string, off int, ok bool) {
+	for _, d := range []string{ToClient, ToServer} {
+		if !strings.HasPrefix(s, d) {
+			continue
+		}
+		i := skipBlanks(s, len(d))
+		if i == len(s) {
+			return d, "", i, true
+		}
+		if s[i] != ',' {
+			break
+		}
+		i = skipBlanks(s, i+1)
+		return d, s[i:], i, true
+	}
+	return "", s, 0, false
 }
 
 // ParseIdent decodes an identifier: one or more letters, digits, '_', '.'

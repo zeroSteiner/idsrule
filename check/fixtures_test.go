@@ -20,10 +20,10 @@ import (
 
 // The fixtures under testdata are rule files annotated with comment lines:
 //
-//	# lint: dialect=snort2 sid-min=1 sid-max=9 placeholder-below=1 require-rev=true
+//	# lint: dialect=snort2 version=8.0 sid-min=1 sid-max=9 placeholder-below=1 require-rev=true
 //	        msg-prefix="VC " checks=a,b style=on sid-index=key severity=id:sev
 //	        space-after-colon=any space-after-semicolon=require
-//	        continuation-indent="    " fixes=N
+//	        continuation-indent="    " fixes=N firewall=true
 //	# expect: <id> [@+N | @N] [error | warning] ["message substring"] [fix]
 //
 // Every "# lint:" key is optional. The dialect defaults to snort2, require-rev
@@ -157,6 +157,12 @@ func parseLint(t *testing.T, f *fixture, rest string) {
 			default:
 				t.Fatalf("%s: # lint: unknown dialect %q", f.name, val)
 			}
+		case "version":
+			v, err := dialect.ParseVersion(val)
+			if err != nil {
+				t.Fatalf("%s: # lint: %v", f.name, err)
+			}
+			f.opts.Version = v
 		case "sid-min":
 			f.opts.Policy.SIDMin = parseUint(t, f.name, key, val)
 		case "sid-max":
@@ -169,6 +175,12 @@ func parseLint(t *testing.T, f *fixture, rest string) {
 				t.Fatalf("%s: # lint: require-rev=%q: %v", f.name, val, err)
 			}
 			f.opts.Policy.RequireRev = b
+		case "firewall":
+			b, err := strconv.ParseBool(val)
+			if err != nil {
+				t.Fatalf("%s: # lint: firewall=%q: %v", f.name, val, err)
+			}
+			f.opts.Policy.Firewall = b
 		case "msg-prefix":
 			f.opts.Policy.MsgPrefix = val
 		case "checks":

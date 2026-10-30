@@ -1,0 +1,3 @@
+# lint: dialect=suricata version=7
+# expect: header-invalid-direction error "transactional "=>" rules require suricata 8.0 or later"
+alert http any any => any any (msg:"a"; http.uri; content:"/d"; sid:1; rev:1;)
