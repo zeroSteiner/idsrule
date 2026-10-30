@@ -68,14 +68,14 @@ func parts(n Node) []Node {
 		addToks(n.Tail)
 	case *Header:
 		add(n.Action)
-		actions := make([]Node, 0, len(n.MoreActions)+len(n.ActionCommas))
-		for _, t := range n.MoreActions {
-			actions = append(actions, t)
+		// ActionCommas[i] precedes MoreActions[i]; a list that ends in
+		// a ',' has one comma more.
+		for i, c := range n.ActionCommas {
+			add(c)
+			if i < len(n.MoreActions) {
+				add(n.MoreActions[i])
+			}
 		}
-		for _, t := range n.ActionCommas {
-			actions = append(actions, t)
-		}
-		add(sortBySpan(actions)...)
 		add(n.Proto)
 		add(groupNode(n.Src), groupNode(n.SrcPort))
 		add(n.Dir)

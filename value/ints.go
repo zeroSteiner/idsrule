@@ -1,6 +1,8 @@
 package value
 
 import (
+	"fmt"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -82,11 +84,11 @@ type RelInt struct {
 	// operator is kept as written.
 	Op string
 	// A is the number, the lower bound of a range or the mask of a
-	// bitmask test.
-	A int64
+	// bitmask test. Suricata reads numbers up to 64 bits.
+	A uint64
 	// B is the upper bound of a range or the value a bitmask test
 	// compares with; zero otherwise.
-	B int64
+	B uint64
 	// Forms records the forms the value uses beyond plain decimal numbers
 	// with an operator or a range, which Snort 2.9 and Suricata 7 do not
 	// all read.
@@ -223,7 +225,7 @@ func parseBitmask(s string, i int) (RelInt, error) {
 // number, matched without regard to case, with the form each is.
 var sizeUnits = []struct {
 	name string
-	mult int64
+	mult uint64
 	form RelIntForm
 }{
 	{"kib", 1 << 10, FormIECUnit}, {"kb", 1 << 10, FormUnit},
@@ -235,7 +237,7 @@ var sizeUnits = []struct {
 // followed by hex digits or decimal digits with an optional size unit,
 // and returns its value, the length of its text and the forms it uses.
 // Snort 2.9 reads only the plain decimal digits.
-func uintValue(s string, i int) (int64, int, RelIntForm, error) {
+func uintValue(s string, i int) (uint64, int, RelIntForm, error) {
 	if strings.HasPrefix(s[i:], "0x") {
 		n := 2
 		for i+n < len(s) && isHex(s[i+n]) {
@@ -244,7 +246,7 @@ func uintValue(s string, i int) (int64, int, RelIntForm, error) {
 		// "0x" with no hex digit after it is the number 0 followed by
 		// an 'x', which the caller rejects.
 		if n > 2 {
-			v, err := strconv.ParseInt(s[i+2:i+n], 16, 64)
+			v, err := strconv.ParseUint(s[i+2:i+n], 16, 64)
 			if err != nil {
 				return 0, 0, 0, errAt(i, "number too large")
 			}
@@ -258,7 +260,7 @@ func uintValue(s string, i int) (int64, int, RelIntForm, error) {
 	rest := s[i+n:]
 	for _, u := range sizeUnits {
 		if len(rest) >= len(u.name) && strings.EqualFold(rest[:len(u.name)], u.name) {
-			if v > maxInt64/u.mult {
+			if v > math.MaxUint64/u.mult {
 				return 0, 0, 0, errAt(i, "number too large")
 			}
 			return v * u.mult, n + len(u.name), u.form, nil
@@ -277,9 +279,9 @@ func (r RelInt) Suricata7() bool {
 	return r.Forms&FormUnit == 0 || r.Op == "" || r.Op == "="
 }
 
-// number decodes the run of digits at s[i:] and returns its value and
-// length.
-func number(s string, i int) (int64, int, error) {
+// number decodes the run of digits at s[i:], an unsigned 64-bit number,
+// and returns its value and length.
+func number(s string, i int) (uint64, int, error) {
 	n := 0
 	for i+n < len(s) && isDigit(s[i+n]) {
 		n++
@@ -287,8 +289,8 @@ func number(s string, i int) (int64, int, error) {
 	if n == 0 {
 		return 0, 0, errAt(i, "expected a number")
 	}
-	v, err := parseDigits(part{s[i : i+n], i})
-	return v, n, err
+	v, err := ParseUint(s[i : i+n])
+	return v, n, shift(err, i)
 }
 
 // Urilen is a decoded urilen value.
@@ -396,8 +398,9 @@ type UintEnum struct {
 }
 
 // ParseUintEnum decodes an integer as Suricata 8 reads one that may be
-// named: a relational integer as ParseRelInt reads it, or an identifier,
-// optionally after '!'. Which names a keyword takes is not checked.
+// named: a relational integer as ParseRelInt reads it, or a name (a letter
+// or '_', then letters, digits and '_'), optionally after '!'. Which names
+// a keyword takes is not checked.
 func ParseUintEnum(s string) (UintEnum, error) {
 	if r, err := ParseRelInt(s); err == nil {
 		return UintEnum{RelInt: r}, nil
@@ -407,13 +410,14 @@ func ParseUintEnum(s string) (UintEnum, error) {
 	if strings.HasPrefix(name, "!") {
 		e.Negated, name = true, name[1:]
 	}
-	if name == "" || isDigit(name[0]) {
+	if name == "" || !isLetter(name[0]) && name[0] != '_' {
 		return UintEnum{}, errAt(0, "expected a number, a comparison or a name")
 	}
-	n, err := ParseIdent(name)
-	if err != nil {
-		return UintEnum{}, shift(err, len(s)-len(name))
+	for i := 1; i < len(name); i++ {
+		if c := name[i]; !isLetter(c) && !isDigit(c) && c != '_' {
+			return UintEnum{}, errAt(len(s)-len(name)+i, fmt.Sprintf("invalid character %q in name", c))
+		}
 	}
-	e.Name = n
+	e.Name = name
 	return e, nil
 }

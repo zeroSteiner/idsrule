@@ -103,15 +103,24 @@ func checkValue(ctx *Context, o *cst.Option, k dialect.Keyword) {
 		}
 	case "threshold":
 		t, err := value.ParseThreshold(logical)
+		// What Suricata 8 added: type backoff and the multiplier key.
+		added := "type backoff"
+		if t.Type != "backoff" {
+			added = "multiplier"
+		}
 		switch {
 		case err != nil:
 		case !t.HasType:
 			ctx.Report(o.ValueSpan(), "threshold requires type")
-		case t.Type != "backoff":
+		case t.Type != "backoff" && !t.HasMultiplier:
 		case ctx.Dialect != dialect.Suricata:
-			ctx.Report(o.ValueSpan(), "threshold: %s has no type backoff", ctx.Dialect)
+			ctx.Report(o.ValueSpan(), "threshold: %s has no %s", ctx.Dialect, added)
 		case ctx.before(dialect.Suricata8):
-			ctx.Report(o.ValueSpan(), "threshold: type backoff requires %s %s or later", ctx.Dialect, dialect.Suricata8)
+			ctx.Report(o.ValueSpan(), "threshold: %s requires %s %s or later", added, ctx.Dialect, dialect.Suricata8)
+		}
+	case "id", "icmp_id", "icmp_seq":
+		if ctx.Dialect == dialect.Snort2 && strings.Contains(logical, `"`) {
+			ctx.Report(o.ValueSpan(), "%s: snort2 reads the number without quotes", k.Name)
 		}
 	case "rfb.secresult":
 		// Suricata 7 reads only the names.
@@ -157,6 +166,10 @@ func checkIntegerForms(ctx *Context, o *cst.Option, k dialect.Keyword, text stri
 	switch {
 	case ctx.Dialect == dialect.Snort2 && r.Forms != 0:
 		ctx.Report(o.ValueSpan(), "%s: %s is Suricata syntax, which snort2 does not read", k.Name, describeForm(r.Forms))
+	case ctx.Dialect == dialect.Suricata && k.Bits == 0 && r.Forms != 0:
+		// Suricata reads such a keyword with a parser of its own, which
+		// knows only plain decimal numbers.
+		ctx.Report(o.ValueSpan(), "%s: %s is not read by Suricata for %s", k.Name, describeForm(r.Forms), k.Name)
 	case ctx.before(dialect.Suricata8) && !r.Suricata7():
 		form := describeForm(r.Forms &^ value.FormUnit)
 		if r.Forms&^value.FormUnit == 0 {
@@ -173,11 +186,11 @@ func checkIntegerForms(ctx *Context, o *cst.Option, k dialect.Keyword, text stri
 // range with no number strictly between its bounds (Suricata's ranges
 // exclude them), and a comparison no number satisfies.
 func checkSuricataUint(ctx *Context, o *cst.Option, k dialect.Keyword, r value.RelInt) {
-	limit := int64(math.MaxInt64)
+	limit := uint64(math.MaxUint64)
 	if k.Bits < 64 {
 		limit = 1<<k.Bits - 1
 	}
-	for _, n := range []int64{r.A, r.B} {
+	for _, n := range []uint64{r.A, r.B} {
 		if n > limit {
 			ctx.Report(o.ValueSpan(), "%s: %d does not fit in %d bits (at most %d)", k.Name, n, k.Bits, limit)
 			return
@@ -193,7 +206,7 @@ func checkSuricataUint(ctx *Context, o *cst.Option, k dialect.Keyword, r value.R
 			ctx.Report(o.ValueSpan(), "%s: %s0 compares with the smallest number, so it is never or always true; Suricata refuses it", k.Name, r.Op)
 		}
 	case ">", "<=":
-		if r.A == limit && k.Bits < 64 {
+		if r.A == limit {
 			ctx.Report(o.ValueSpan(), "%s: %s%d compares with the largest %d-bit number, so it is never or always true; Suricata refuses it", k.Name, r.Op, limit, k.Bits)
 		}
 	}

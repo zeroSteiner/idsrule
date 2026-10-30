@@ -120,7 +120,10 @@ func TestParseRelInt(t *testing.T) {
 		{">=0x10", value.RelInt{Op: ">=", A: 16, Forms: value.FormHex}, noErr},
 		{"0x10-0x20", value.RelInt{Op: "-", A: 16, B: 32, Forms: value.FormHex}, noErr},
 		{"0x7fffffffffffffff", value.RelInt{A: 1<<63 - 1, Forms: value.FormHex}, noErr},
-		{"0x8000000000000000", value.RelInt{}, 0},
+		{"0x8000000000000000", value.RelInt{A: 1 << 63, Forms: value.FormHex}, noErr},
+		{"0xffffffffffffffff", value.RelInt{A: 1<<64 - 1, Forms: value.FormHex}, noErr},
+		{"18446744073709551615", value.RelInt{A: 1<<64 - 1}, noErr},
+		{"0x10000000000000000", value.RelInt{}, 0},
 		{"0X10", value.RelInt{}, 1},
 		{"0x", value.RelInt{}, 1},
 		{"0xg", value.RelInt{}, 1},
@@ -132,7 +135,8 @@ func TestParseRelInt(t *testing.T) {
 		{"3GiB", value.RelInt{A: 3 << 30, Forms: value.FormIECUnit}, noErr},
 		{"0kb", value.RelInt{Forms: value.FormUnit}, noErr},
 		{"1kb<>2kb", value.RelInt{Op: "<>", A: 1 << 10, B: 2 << 10, Forms: value.FormUnit}, noErr},
-		{"9999999999gb", value.RelInt{}, 0},
+		{"9999999999gb", value.RelInt{A: 9999999999 << 30, Forms: value.FormUnit}, noErr},
+		{"99999999999gb", value.RelInt{}, 0},
 		{"10 kb", value.RelInt{}, 3},
 		{"10k", value.RelInt{}, 2},
 		{"10kbx", value.RelInt{}, 4},
@@ -322,6 +326,11 @@ func TestParseUintEnum(t *testing.T) {
 		{"3x", value.UintEnum{}, 0},
 		{"a b", value.UintEnum{}, 1},
 		{"!a!", value.UintEnum{}, 2},
+		{"-1", value.UintEnum{}, 0},
+		{".5", value.UintEnum{}, 0},
+		{"_x1", value.UintEnum{Name: "_x1"}, noErr},
+		{"a-b", value.UintEnum{}, 1},
+		{"a.b", value.UintEnum{}, 1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {

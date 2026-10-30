@@ -1,0 +1,4 @@
+# lint: dialect=suricata version=8 checks=keyword-deprecated
+# Suricata 8.0 has no ssh.protoversion to deprecate; keyword-version
+# reports it.
+alert ssh any any -> any any (msg:"a"; ssh.protoversion:2.0; sid:1; rev:1;)

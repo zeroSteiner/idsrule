@@ -17,6 +17,9 @@ type Threshold struct {
 	Multiplier int64
 	// HasType reports whether a type was given.
 	HasType bool
+	// HasMultiplier reports whether a multiplier was given, which
+	// Suricata 8 reads with any type.
+	HasMultiplier bool
 }
 
 // thresholdTypes are the values of the type key, Suricata 8's backoff
@@ -69,7 +72,7 @@ func ParseThreshold(s string) (Threshold, error) {
 			case "seconds":
 				t.Seconds = n
 			default:
-				t.Multiplier = n
+				t.Multiplier, t.HasMultiplier = n, true
 			}
 		default:
 			return Threshold{}, errAt(key.off, fmt.Sprintf("unknown threshold key %q", key.text))

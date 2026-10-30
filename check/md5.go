@@ -1,6 +1,9 @@
 package check
 
 import (
+	"encoding/hex"
+	"errors"
+
 	"github.com/zeroSteiner/idsrule/diag"
 	"github.com/zeroSteiner/idsrule/dialect"
 	"github.com/zeroSteiner/idsrule/value"
@@ -50,21 +53,14 @@ func checkContentMD5(ctx *Context) {
 					ctx.Report(o.ValueSpan(), "%s content is %d bytes; an MD5 is 32 hex digits, so Suricata refuses the rule", buffer, len(c.Pattern))
 					continue
 				}
-				for _, b := range c.Pattern {
-					if !isHexByte(b) {
-						d := ctx.Report(o.ValueSpan(), "%s content has %q, not a hex digit; it never matches, and Suricata 8 refuses the rule", buffer, rune(b))
-						if !ctx.at(dialect.Suricata8) {
-							d.Severity = diag.SeverityWarning
-						}
-						break
+				var bad hex.InvalidByteError
+				if _, err := hex.DecodeString(string(c.Pattern)); errors.As(err, &bad) {
+					d := ctx.Report(o.ValueSpan(), "%s content has %q, not a hex digit; it never matches, and Suricata 8 refuses the rule", buffer, rune(bad))
+					if !ctx.at(dialect.Suricata8) {
+						d.Severity = diag.SeverityWarning
 					}
 				}
 			}
 		}
 	}
-}
-
-// isHexByte reports whether b is a hex digit.
-func isHexByte(b byte) bool {
-	return b >= '0' && b <= '9' || b >= 'a' && b <= 'f' || b >= 'A' && b <= 'F'
 }

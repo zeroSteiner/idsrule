@@ -56,18 +56,19 @@ func IsAction(word string) bool {
 // configDirective reports whether the line at the current token, which
 // starts with an action, is a configuration directive rather than a rule:
 // it starts with the bare word config, as Snort's "config classification:
-// ..." does, and no '(' follows on the line. A Suricata rule with the
-// config action has a body, so its '(' tells it apart.
+// ..." does, and no direction ("->", "<>" or "=>") comes before the first
+// '(' of the line. A Suricata rule with the config action has a header
+// with a direction; a directive's text may hold a '(' but not those.
 func (p *parser) configDirective() bool {
 	if p.peek().Lit != "config" {
 		return false
 	}
 	for _, t := range p.toks[p.pos+1:] {
-		if t.Kind == token.LParen {
+		switch {
+		case isDirection(t):
 			return false
-		}
-		if t.Kind == token.Newline || t.Kind == token.EOF {
-			break
+		case t.Kind == token.LParen, t.Kind == token.Newline, t.Kind == token.EOF:
+			return true
 		}
 	}
 	return true

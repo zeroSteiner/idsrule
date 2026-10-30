@@ -1140,6 +1140,7 @@ func TestSuricata8Header(t *testing.T) {
 // line, as before Suricata's config action was known.
 func TestConfigDirective(t *testing.T) {
 	src := []byte("config classification: not-suspicious,Not Suspicious Traffic,3\n" +
+		"config classification: misc,Misc (generic) activity,3\n" +
 		"config disable_decode_alerts\n" +
 		"config dns any any -> any any (dns.query; content:\"x\"; config:logging disable,type tx,scope tx; sid:1;)\n" +
 		"config:packet tcp any any -> any any (sid:2;)\n")
@@ -1150,7 +1151,7 @@ func TestConfigDirective(t *testing.T) {
 	if n := len(f.Rules()); n != 2 {
 		t.Errorf("%d rules, want 2 (the config rules with a body)", n)
 	}
-	if len(diags) != 2 {
+	if len(diags) != 3 {
 		t.Fatalf("%d diagnostics, want one per directive line: %v", len(diags), diags)
 	}
 	for _, d := range diags {

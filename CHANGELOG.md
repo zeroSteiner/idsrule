@@ -23,7 +23,9 @@ Before v1 the API may change in any minor release.
   `mqtt.connack.return_code`.
 - `ssh.protoversion` and `ssh.softwareversion` are deprecated in Suricata
   (successors `ssh.proto` and `ssh.software`), so `keyword-deprecated`
-  reports them when the version is 7.0.
+  reports them unless the version is 8.0, which has no such keywords
+  (`keyword-version` reports them there). The two checks run
+  independently: with no version set, both warn.
 - `dialect.Keyword.Successor` may now be set on a removed keyword as well
   as on a deprecated one.
 - A sticky buffer may take a value: the table invariant that a
@@ -40,7 +42,18 @@ Before v1 the API may change in any minor release.
   - Suricata 8's integer syntax when the version is 7.0;
   - `threshold: type backoff` outside Suricata 8.
 - `value.RelInt` gains `Forms`, so a `RelInt` literal compared with
-  `==` must set it.
+  `==` must set it. `RelInt.A` and `RelInt.B` are `uint64`, not `int64`,
+  because Suricata reads integers up to 64 bits (`bsize:0xffffffffffffffff`
+  used to be "number too large").
+- Suricata reads `window`, `fragoffset` and `tcp.window` with parsers of
+  their own, which know only plain decimal numbers. So `value-invalid`
+  rejects Suricata's integer syntax (hex, units, negated ranges,
+  bitmasks) on keywords with no `Keyword.Bits`, as it does in Snort 2.9.
+- `value-invalid` reports `multiplier` in a `threshold` outside Suricata
+  8, whatever the type (`value.Threshold` gains `HasMultiplier`). It also
+  reports a quoted `id`, `icmp_id` or `icmp_seq` in Snort 2.9.
+- A `KindUintEnum` name must be a letter or `_` followed by letters,
+  digits and `_`, so `ntp.mode:-1` is an error.
 - In Suricata, `value-invalid` now applies the checks of Suricata's
   integer parser to the keywords it reads with that parser (those whose
   `Keyword.Bits` is set):
@@ -82,8 +95,9 @@ Before v1 the API may change in any minor release.
 - `parser.IsAction` accepts `config` and `accept`, and an action with a
   scope (`drop:flow`). A line that starts with one of them is parsed as
   a rule, except a line that starts with the bare word `config` and has
-  no `(`. That is a configuration directive (Snort's `config
-  classification: ...`), and it is still one `syntax-bad-header`.
+  no direction (`->`, `<>`, `=>`) before its first `(`. That is a
+  configuration directive (Snort's `config classification: ...`), and it
+  is still one `syntax-bad-header`.
 - `config` and `accept` are Suricata actions (`Dialect.Actions`), and
   `doh2` a Suricata protocol.
 

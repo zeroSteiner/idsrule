@@ -14,9 +14,9 @@ func TestParseThreshold(t *testing.T) {
 	}{
 		{"type limit, track by_src, count 1, seconds 60", value.Threshold{Type: "limit", Track: "by_src", Count: 1, Seconds: 60, HasType: true}, noErr},
 		// Suricata 8's backoff.
-		{"type backoff, track by_flow, count 1, multiplier 10", value.Threshold{Type: "backoff", Track: "by_flow", Count: 1, Multiplier: 10, HasType: true}, noErr},
-		{"type backoff, track by_flow, count 65535, multiplier 65535", value.Threshold{Type: "backoff", Track: "by_flow", Count: 65535, Multiplier: 65535, HasType: true}, noErr},
-		{"type limit, track by_src, count 1, seconds 60, multiplier 3", value.Threshold{Type: "limit", Track: "by_src", Count: 1, Seconds: 60, Multiplier: 3, HasType: true}, noErr},
+		{"type backoff, track by_flow, count 1, multiplier 10", value.Threshold{Type: "backoff", Track: "by_flow", Count: 1, Multiplier: 10, HasType: true, HasMultiplier: true}, noErr},
+		{"type backoff, track by_flow, count 65535, multiplier 65535", value.Threshold{Type: "backoff", Track: "by_flow", Count: 65535, Multiplier: 65535, HasType: true, HasMultiplier: true}, noErr},
+		{"type limit, track by_src, count 1, seconds 60, multiplier 3", value.Threshold{Type: "limit", Track: "by_src", Count: 1, Seconds: 60, Multiplier: 3, HasType: true, HasMultiplier: true}, noErr},
 		{"type backoff, track by_flow, count 1", value.Threshold{}, 36},
 		{"type backoff, track by_flow, count 1, multiplier 10, seconds 5", value.Threshold{}, 0},
 		{"type backoff, track by_src, count 1, multiplier 10", value.Threshold{}, 0},

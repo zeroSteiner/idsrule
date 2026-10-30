@@ -1,0 +1,6 @@
+# lint: dialect=snort2
+# expect: value-invalid error "threshold: snort2 has no multiplier"
+alert tcp any any -> any any (msg:"a"; threshold:type limit, track by_src, count 1, seconds 60, multiplier 3; sid:1; rev:1;)
+# expect: value-invalid error "id: snort2 reads the number without quotes"
+alert ip any any -> any any (msg:"b"; id:"123"; sid:2; rev:1;)
+alert ip any any -> any any (msg:"c"; id:123; sid:3; rev:1;)

@@ -1,0 +1,5 @@
+# lint: dialect=suricata checks=keyword-deprecated
+# keyword-deprecated reports a deprecated keyword that a later release
+# removed on its own, whether or not keyword-version runs.
+# expect: keyword-deprecated warning ""ssh.protoversion" is deprecated in suricata; use "ssh.proto""
+alert ssh any any -> any any (msg:"a"; ssh.protoversion:2.0; sid:1; rev:1;)

@@ -84,8 +84,9 @@ func checkKeywordDeprecated(ctx *Context) {
 			if !ok || !k.Deprecated.Has(ctx.Dialect) {
 				continue
 			}
-			if k.Removed != dialect.AnyVersion && !ctx.before(k.Removed) {
-				// keyword-version reports it as removed.
+			if k.Removed != dialect.AnyVersion && ctx.at(k.Removed) {
+				// The release has no such keyword to deprecate;
+				// keyword-version reports it.
 				continue
 			}
 			ctx.Report(o.Keyword.Span(), "%q is deprecated in %s%s", k.Name, ctx.Dialect, useSuccessor(k))
