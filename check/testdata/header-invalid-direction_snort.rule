@@ -1,0 +1,3 @@
+# lint: dialect=snort2
+# expect: header-invalid-direction error "snort2 has no "=>" direction"
+alert tcp any any => any any (msg:"a"; sid:1; rev:1;)

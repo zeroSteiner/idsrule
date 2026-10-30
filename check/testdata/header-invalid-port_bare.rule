@@ -1,0 +1,5 @@
+# lint: dialect=snort2
+# expect: header-invalid-port error "snort2 needs brackets around a list: [80,443]"
+alert tcp any 80,443 -> any any (msg:"a"; sid:1; rev:1;)
+# expect: header-invalid-port error "invalid port "99999""
+alert tcp any [80,99999] -> any any (msg:"b"; sid:2; rev:1;)

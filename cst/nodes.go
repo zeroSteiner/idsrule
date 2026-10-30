@@ -114,11 +114,20 @@ func (r *Rule) MultiLine() bool {
 // whose Word is a Missing token, placed where the part should have been.
 type Header struct {
 	base
-	Action  token.Token
+	// Action is the action, with the scope Suricata 8 may give it after a
+	// ':' ("drop:flow"), kept in the token: "alert", "accept:hook".
+	Action token.Token
+	// MoreActions are the further actions of a Suricata 8 firewall rule,
+	// "accept:hook,alert", each after the ',' at the same index of
+	// ActionCommas. A list that ends in a ',' has one comma more.
+	MoreActions  []token.Token
+	ActionCommas []token.Token
+	// Proto is the protocol, with the hook Suricata 8 may give it after a
+	// ':' ("http1:request_line", "tcp:all") kept in the token.
 	Proto   token.Token
 	Src     *Group
 	SrcPort *Group
-	Dir     token.Token // "->" or "<>"; kept as found when it is something else
+	Dir     token.Token // "->", "<>" or "=>"; kept as found when it is something else
 	Dst     *Group
 	DstPort *Group
 	Extra   []token.Token // unexpected tokens between the last part and '('
@@ -142,6 +151,11 @@ type Group struct {
 // whitespace next to the brackets and the commas is kept as children. An
 // unclosed list does not become a List: its tokens are the Bad tokens of
 // the enclosing Group.
+//
+// Suricata also reads an address or port list written without brackets,
+// "10.0.0.0/8,192.168.0.0/16". Such a list is the List of its own Group,
+// with Missing tokens as LBracket and RBracket; Bracketed tells the two
+// apart.
 type List struct {
 	base
 	LBracket token.Token
@@ -149,6 +163,10 @@ type List struct {
 	Commas   []token.Token
 	RBracket token.Token
 }
+
+// Bracketed reports whether the list is written with brackets, as opposed
+// to Suricata's bare "a,b".
+func (l *List) Bracketed() bool { return l.LBracket.Kind != token.Missing }
 
 // Body is everything strictly between a rule's '(' and ')': its options,
 // the runs of tokens that did not parse as options, and the trivia between

@@ -41,6 +41,22 @@ Before v1 the API may change in any minor release.
 - `quic.version` is a sticky buffer, as in both Suricata 7 and 8. It no
   longer takes a value, so `quic.version:1` is now a `value-invalid`
   error.
+- The parser reads Suricata 8 headers that it used to report as
+  `syntax-bad-header`. The checks now report them where they do not
+  belong.
+  - `cst.Header` gains `MoreActions` and `ActionCommas` for a firewall
+    rule's action list (`accept:hook,alert`).
+  - Scopes and hooks stay in their tokens: `Action.Lit` may be
+    `"drop:flow"` and `Proto.Lit` may be `"http1:request_line"`.
+  - `Dir` may be `"=>"`.
+  - An address or port list without brackets
+    (`10.0.0.0/8,!10.1.0.0/16`) is a `cst.List` with `Missing` brackets;
+    see `List.Bracketed`.
+- `parser.IsAction` accepts `config` and `accept`, and an action with a
+  scope (`drop:flow`). A line that starts with one of them is parsed as
+  a rule.
+- `config` and `accept` are Suricata actions (`Dialect.Actions`), and
+  `doh2` a Suricata protocol.
 
 ### Added
 
@@ -77,6 +93,34 @@ Before v1 the API may change in any minor release.
 - `frame` (Suricata 7 and later): the sticky buffer that selects a
   frame, `frame:ssh.record.hdr`. It was unknown, so a `bsize` or
   `endswith` after it was also a `modifier-without-content` error.
+- Suricata 8 rule headers.
+  - Action scopes: `drop` and `pass` take `packet` or `flow`, `config`
+    takes `packet`, and `accept` takes `packet`, `flow`, `tx` or `hook`.
+  - The `config` action (Suricata 7 and later).
+  - Protocol hooks: `http1:request_line`, `dns:request_complete`,
+    `http1:<request_headers`, `tcp:all`.
+  - The transactional `=>` direction.
+  - Address and port lists without brackets.
+  - `header-invalid-action`, `header-invalid-protocol` and the new
+    `header-invalid-direction` check (error) report each of these where
+    the dialect or release lacks it. They also report a scope the action
+    does not take, a packet hook that is not `flow_start`, `pre_flow`,
+    `pre_stream` or `all`, and a malformed application hook.
+  - `header-invalid-address` and `header-invalid-port` report a list
+    without brackets in Snort 2.9.
+- `Policy.Firewall` marks Suricata files as Suricata 8 firewall rule
+  files. Only there is the `accept` action valid, and only there may a
+  rule list several actions. `header-invalid-action` holds these rules to
+  what Suricata requires:
+  - the first action is `accept`, `config`, `drop` or `reject`, and the
+    others are `alert` or `pass`;
+  - `pass` comes only after `accept`, and inherits only `packet` or
+    `flow`;
+  - the rule gives a scope, and every scope agrees.
+  `header-invalid-direction` reports `=>` in a firewall rule.
+- `Dialect.ActionAdded`, `Dialect.ProtocolAdded` and
+  `Dialect.IsPacketProtocol`. `doh2` is new, and `ldap`, `mdns`, `pop3`
+  and `websocket` are marked as added in Suricata 8.0.
 - `content-depth-too-short` check (error): a `depth` or `within` smaller
   than the content it modifies, measured on the decoded pattern (escapes
   and `|hex|` bytes count once each), so it can never match; Suricata

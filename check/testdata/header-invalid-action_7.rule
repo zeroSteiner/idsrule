@@ -1,0 +1,8 @@
+# lint: dialect=suricata version=7 firewall=true
+# Suricata 7 has no firewall rules: Policy.Firewall changes nothing but
+# that accept is reported for the release.
+config dns any any -> any any (msg:"a"; dns.query; content:"x"; sid:1; rev:1;)
+# expect: header-invalid-action error "action scopes require suricata 8.0 or later"
+drop:flow tcp any any -> any any (msg:"b"; sid:2; rev:1;)
+# expect: header-invalid-action error ""accept" requires suricata 8.0 or later"
+accept tcp any any -> any any (msg:"c"; sid:3; rev:1;)

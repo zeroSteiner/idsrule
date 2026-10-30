@@ -59,4 +59,4 @@
     (Newline 75:76 "\n"))
   (EOF 76:76 ""))
 
-diag syntax-bad-header 18:20 expected direction '->' or '<>', got "<-"
+diag syntax-bad-header 18:20 expected direction '->', '<>' or '=>', got "<-"

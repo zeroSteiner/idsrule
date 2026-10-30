@@ -67,7 +67,16 @@ func parts(n Node) []Node {
 		add(n.RParen)
 		addToks(n.Tail)
 	case *Header:
-		add(n.Action, n.Proto)
+		add(n.Action)
+		actions := make([]Node, 0, len(n.MoreActions)+len(n.ActionCommas))
+		for _, t := range n.MoreActions {
+			actions = append(actions, t)
+		}
+		for _, t := range n.ActionCommas {
+			actions = append(actions, t)
+		}
+		add(sortBySpan(actions)...)
+		add(n.Proto)
 		add(groupNode(n.Src), groupNode(n.SrcPort))
 		add(n.Dir)
 		add(groupNode(n.Dst), groupNode(n.DstPort))

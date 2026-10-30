@@ -1,0 +1,3 @@
+# lint: dialect=suricata firewall=true
+# expect: header-invalid-direction error "a firewall rule cannot be a transactional "=>" rule"
+accept:tx http any any => any any (msg:"a"; sid:1; rev:1;)

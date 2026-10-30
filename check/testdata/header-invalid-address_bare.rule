@@ -1,0 +1,6 @@
+# lint: dialect=suricata
+# Suricata reads an address list without brackets.
+alert tcp 192.168.0.0/16,10.0.0.0/8,172.16.0.0/12 any -> ![192.168.0.0/16,10.0.0.0/8] any (msg:"a"; sid:1; rev:1;)
+alert tcp 10.0.0.0/8,!10.1.0.0/16 any -> any any (msg:"b"; sid:2; rev:1;)
+# expect: header-invalid-address error "invalid address "10.0.0.256""
+alert tcp 10.0.0.0/8,10.0.0.256 any -> any any (msg:"c"; sid:3; rev:1;)

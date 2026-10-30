@@ -12,16 +12,19 @@ func isHeaderEnd(t token.Token) bool {
 	return t.Kind == token.LParen || t.Kind == token.Newline || t.Kind == token.EOF
 }
 
-// isDirection reports whether t is one of the two direction operators.
+// isDirection reports whether t is a direction operator: "->", "<>", or
+// Suricata 8's transactional "=>".
 func isDirection(t token.Token) bool {
-	return t.Kind == token.Word && (t.Lit == "->" || t.Lit == "<>")
+	return t.Kind == token.Word && (t.Lit == "->" || t.Lit == "<>" || t.Lit == "=>")
 }
 
 // parseHeader parses a rule header, from the action (the current token) up
 // to but not including the '(' and the trivia before it.
 //
-// The seven parts are taken in order from the token stream: the protocol
-// and the direction are single tokens, the address and port groups are
+// The seven parts are taken in order from the token stream. The action may
+// be followed, with no space, by ',' and further actions, as a Suricata 8
+// firewall rule lists them ("accept:hook,alert"). The protocol and the
+// direction are single tokens, the address and port groups are
 // whitespace-delimited fields (see field). When the stream reaches '(', a
 // newline or the EOF before all seven are in, the missing part is reported
 // and it and every part after it become Missing tokens, or groups holding
@@ -40,6 +43,18 @@ func (p *parser) parseHeader() *cst.Header {
 			reported = true
 			p.report(RuleBadHeader, span, format, args...)
 		}
+	}
+	for p.peek().Kind == token.Comma {
+		comma := p.next()
+		h.ActionCommas = append(h.ActionCommas, comma)
+		kids = append(kids, comma)
+		if t := p.peek(); t.Kind != token.Word {
+			report(t.Span(), "expected an action after ',', got %s", describe(t))
+			break
+		}
+		a := p.next()
+		h.MoreActions = append(h.MoreActions, a)
+		kids = append(kids, a)
 	}
 	stopped := -1 // where the header ran out of parts, once it has
 
@@ -87,7 +102,7 @@ func (p *parser) parseHeader() *cst.Header {
 	h.Proto = word("protocol", func(t token.Token) bool { return t.Kind == token.Word }, "a protocol")
 	h.Src = group("source address")
 	h.SrcPort = group("source port")
-	h.Dir = word("direction", isDirection, "direction '->' or '<>'")
+	h.Dir = word("direction", isDirection, "direction '->', '<>' or '=>'")
 	h.Dst = group("destination address")
 	h.DstPort = group("destination port")
 
@@ -188,7 +203,8 @@ type fieldErr struct {
 }
 
 // buildGroup parses the tokens of a field as '!'? ( Word | List ), with
-// nothing left over.
+// nothing left over, or as a list of those written without brackets,
+// separated by ',' (see bareList).
 func buildGroup(src []byte, toks []token.Token) (*cst.Group, *fieldErr) {
 	if len(toks) == 0 {
 		return nil, &fieldErr{}
@@ -197,9 +213,47 @@ func buildGroup(src []byte, toks []token.Token) (*cst.Group, *fieldErr) {
 	if err != nil {
 		return nil, err
 	}
+	if i < len(toks) && toks[i].Kind == token.Comma {
+		return bareList(src, toks, g, i)
+	}
 	if i < len(toks) {
 		return nil, &fieldErr{tok: toks[i]}
 	}
+	return g, nil
+}
+
+// bareList parses the rest of a field that is a list without brackets, as
+// Suricata reads an address or port ("10.0.0.0/8,!10.1.0.0/16"): first is
+// its first item and toks[i] the ',' after it. The list it returns, in a
+// group of its own, has Missing tokens for its brackets, at its two ends.
+// As in Suricata, a '!' applies to the one item it precedes.
+func bareList(src []byte, toks []token.Token, first *cst.Group, i int) (*cst.Group, *fieldErr) {
+	l := &cst.List{LBracket: missing(first.Span().Start), Items: []*cst.Group{first}}
+	kids := []cst.Node{l.LBracket, first}
+	for i < len(toks) {
+		comma := toks[i]
+		if comma.Kind != token.Comma {
+			return nil, &fieldErr{tok: comma}
+		}
+		l.Commas = append(l.Commas, comma)
+		kids = append(kids, comma)
+		i++
+		if i == len(toks) {
+			return nil, &fieldErr{tok: comma}
+		}
+		item, j, err := groupAt(src, toks, i)
+		if err != nil {
+			return nil, err
+		}
+		l.Items = append(l.Items, item)
+		kids = append(kids, item)
+		i = j
+	}
+	l.RBracket = missing(toks[len(toks)-1].End)
+	kids = append(kids, l.RBracket)
+	cst.Seal(l, src, 0, kids...)
+	g := &cst.Group{List: l}
+	cst.Seal(g, src, 0, l)
 	return g, nil
 }
 

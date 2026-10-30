@@ -1,0 +1,19 @@
+# lint: dialect=suricata firewall=true
+accept:hook tcp:all any any <> any 80 (sid:1;)
+accept:hook http1:request_line any any -> any any (msg:"b"; sid:2; rev:1;)
+accept:flow,pass tcp any any -> any any (msg:"c"; sid:3; rev:1;)
+drop:packet,alert tcp any any -> any any (msg:"d"; sid:4; rev:1;)
+# expect: header-invalid-action error "alert takes no scope"
+accept:packet,alert:packet tcp any any -> any any (msg:"e"; sid:5; rev:1;)
+# expect: header-invalid-action error "a firewall rule starts with accept, config, drop or reject, not "alert""
+alert tcp any any -> any any (msg:"f"; sid:6; rev:1;)
+# expect: header-invalid-action error "only alert or pass may follow a firewall rule's first action, not "drop""
+accept:packet,drop tcp any any -> any any (msg:"g"; sid:7; rev:1;)
+# expect: header-invalid-action error "pass follows only accept in a firewall rule"
+drop:flow,pass tcp any any -> any any (msg:"h"; sid:8; rev:1;)
+# expect: header-invalid-action error "pass inherits the scope "hook", which it does not take; use packet or flow"
+accept:hook,pass tcp any any -> any any (msg:"i"; sid:9; rev:1;)
+# expect: header-invalid-action error "a firewall rule needs an action scope, such as "accept:packet""
+accept tcp any any -> any any (msg:"j"; sid:10; rev:1;)
+# expect: header-invalid-action error "pass takes the scope packet, flow, not "tx""
+accept:tx,pass:tx tcp any any -> any any (msg:"k"; sid:11; rev:1;)

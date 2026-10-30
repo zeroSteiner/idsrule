@@ -1,0 +1,6 @@
+# lint: dialect=suricata version=7
+# expect: header-invalid-protocol error ""doh2" requires suricata 8.0 or later"
+alert doh2 any any -> any any (msg:"a"; sid:1; rev:1;)
+# expect: header-invalid-protocol error "protocol hooks require suricata 8.0 or later"
+alert http1:request_line any any -> any any (msg:"b"; sid:2; rev:1;)
+alert http any any -> any any (msg:"c"; sid:3; rev:1;)

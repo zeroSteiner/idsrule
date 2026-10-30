@@ -9,7 +9,22 @@ import (
 var snort2Actions = []string{"alert", "log", "pass", "activate", "dynamic", "drop", "reject", "sdrop"}
 
 // suricataActions are the rule actions of Suricata, in the manual's order.
-var suricataActions = []string{"alert", "pass", "drop", "reject", "rejectsrc", "rejectdst", "rejectboth"}
+// accept, Suricata 8's, is valid only in firewall rules.
+var suricataActions = []string{"alert", "pass", "drop", "reject", "rejectsrc", "rejectdst", "rejectboth", "config", "accept"}
+
+// suricataActionsAdded are the Suricata actions that not every release the
+// tables describe has, with the release that added them.
+var suricataActionsAdded = map[string]Version{"accept": Suricata8}
+
+// ActionAdded returns the release of d that added the action name, or
+// AnyVersion when every release the tables describe has it or it is not
+// one of d's actions. The name is compared without regard to case.
+func (d Dialect) ActionAdded(name string) Version {
+	if d != Suricata {
+		return AnyVersion
+	}
+	return suricataActionsAdded[strings.ToLower(name)]
+}
 
 // Actions returns the rule actions of d in the order the dialect's manual
 // lists them, or the sorted union of every dialect's actions for Unknown

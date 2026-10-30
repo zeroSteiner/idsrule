@@ -1,6 +1,9 @@
 package dialect
 
-import "slices"
+import (
+	"slices"
+	"strings"
+)
 
 // snort2Protocols are the protocols a Snort 2.9 rule header accepts.
 var snort2Protocols = []string{"ip", "tcp", "udp", "icmp"}
@@ -9,13 +12,19 @@ var snort2Protocols = []string{"ip", "tcp", "udp", "icmp"}
 // network protocols, their aliases, and the application-layer protocols.
 // The list follows Suricata 7 and includes the protocols later versions
 // added, so that a rule for a newer engine is not rejected.
-var suricataProtocols = []string{
-	// Network layer and transport.
+var suricataProtocols = slices.Concat(suricataPacketProtocols, suricataAppProtocols)
+
+// suricataPacketProtocols are the Suricata protocols of the network and
+// transport layers; a packet hook ("tcp:all") follows only them.
+var suricataPacketProtocols = []string{
 	"ip", "ip4", "ip6", "ipv4", "ipv6", "pkthdr",
 	"tcp", "tcp-pkt", "tcp-stream", "udp", "sctp",
 	"icmp", "icmpv4", "icmpv6", "igmp",
-	// Application layer.
-	"bittorrent-dht", "dcerpc", "dhcp", "dnp3", "dns", "enip", "ftp", "ftp-data",
+}
+
+// suricataAppProtocols are the Suricata application-layer protocols.
+var suricataAppProtocols = []string{
+	"bittorrent-dht", "dcerpc", "dhcp", "dnp3", "dns", "doh2", "enip", "ftp", "ftp-data",
 	"http", "http1", "http2", "ike", "ikev2", "imap", "irc", "jabber", "krb5",
 	"ldap", "mdns", "modbus", "mqtt", "nfs", "ntp", "pgsql", "pop3", "quic",
 	"rdp", "rfb", "sip", "smb", "smtp", "snmp", "ssh", "telnet", "tftp", "tls",
@@ -34,6 +43,37 @@ func (d Dialect) Protocols() []string {
 	case Unknown:
 	}
 	return union(snort2Protocols, suricataProtocols)
+}
+
+// suricataProtocolsAdded are the Suricata protocols that not every release
+// the tables describe has, with the release that added them.
+var suricataProtocolsAdded = map[string]Version{
+	"doh2": Suricata8, "ldap": Suricata8, "mdns": Suricata8, "pop3": Suricata8, "websocket": Suricata8,
+}
+
+// ProtocolAdded returns the release of d that added the protocol s, or
+// AnyVersion when every release the tables describe has it or it is not
+// one of d's protocols. The name is compared without regard to case.
+func (d Dialect) ProtocolAdded(s string) Version {
+	if d != Suricata {
+		return AnyVersion
+	}
+	return suricataProtocolsAdded[strings.ToLower(s)]
+}
+
+// IsPacketProtocol reports whether s is a network-layer or transport
+// protocol of d, such as tcp or pkthdr, rather than an application-layer
+// one; for Unknown or an undefined dialect, of any dialect. The comparison
+// ignores case.
+func (d Dialect) IsPacketProtocol(s string) bool {
+	switch d {
+	case Snort2:
+		return containsFold(snort2Protocols, s)
+	case Suricata:
+		return containsFold(suricataPacketProtocols, s)
+	case Unknown:
+	}
+	return containsFold(snort2Protocols, s) || containsFold(suricataPacketProtocols, s)
 }
 
 // IsProtocol reports whether s is a protocol a rule header of d accepts;

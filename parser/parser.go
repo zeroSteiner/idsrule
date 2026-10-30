@@ -29,6 +29,7 @@ package parser
 import (
 	"cmp"
 	"slices"
+	"strings"
 
 	"github.com/zeroSteiner/idsrule/cst"
 	"github.com/zeroSteiner/idsrule/diag"
@@ -42,10 +43,15 @@ var actions = map[string]bool{
 	"alert": true, "log": true, "pass": true, "drop": true, "reject": true,
 	"sdrop": true, "activate": true, "dynamic": true,
 	"rejectsrc": true, "rejectdst": true, "rejectboth": true,
+	"config": true, "accept": true,
 }
 
-// IsAction reports whether word is a rule action of either dialect.
-func IsAction(word string) bool { return actions[word] }
+// IsAction reports whether word is a rule action of either dialect, on its
+// own or with the scope Suricata 8 writes after a ':' ("drop:flow").
+func IsAction(word string) bool {
+	name, _, _ := strings.Cut(word, ":")
+	return actions[name]
+}
 
 // Parse lexes and parses src. It never fails: the returned file is never
 // nil, its text is src byte for byte, and whatever the input the call

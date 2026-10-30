@@ -241,9 +241,9 @@ func TestActions(t *testing.T) {
 		want []string
 	}{
 		{dialect.Snort2, []string{"alert", "log", "pass", "activate", "dynamic", "drop", "reject", "sdrop"}},
-		{dialect.Suricata, []string{"alert", "pass", "drop", "reject", "rejectsrc", "rejectdst", "rejectboth"}},
-		{dialect.Unknown, []string{"activate", "alert", "drop", "dynamic", "log", "pass", "reject", "rejectboth", "rejectdst", "rejectsrc", "sdrop"}},
-		{dialect.Dialect(9), []string{"activate", "alert", "drop", "dynamic", "log", "pass", "reject", "rejectboth", "rejectdst", "rejectsrc", "sdrop"}},
+		{dialect.Suricata, []string{"alert", "pass", "drop", "reject", "rejectsrc", "rejectdst", "rejectboth", "config", "accept"}},
+		{dialect.Unknown, []string{"accept", "activate", "alert", "config", "drop", "dynamic", "log", "pass", "reject", "rejectboth", "rejectdst", "rejectsrc", "sdrop"}},
+		{dialect.Dialect(9), []string{"accept", "activate", "alert", "config", "drop", "dynamic", "log", "pass", "reject", "rejectboth", "rejectdst", "rejectsrc", "sdrop"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.d.String(), func(t *testing.T) {
@@ -301,7 +301,7 @@ func TestProtocols(t *testing.T) {
 		"ip", "tcp", "udp", "icmp",
 		"http", "http2", "ftp", "ftp-data", "tls", "ssh", "smb", "dns", "dcerpc", "smtp", "imap",
 		"modbus", "dnp3", "enip", "nfs", "ntp", "dhcp", "krb5", "ikev2", "ike", "snmp", "sip", "rfb",
-		"mqtt", "tftp", "rdp", "pgsql", "quic", "bittorrent-dht", "websocket", "ldap", "pop3",
+		"mqtt", "tftp", "rdp", "pgsql", "quic", "bittorrent-dht", "websocket", "ldap", "pop3", "doh2", "mdns",
 	} {
 		if !slices.Contains(suricata, p) {
 			t.Errorf("Suricata.Protocols() lacks %q", p)
@@ -358,5 +358,40 @@ func TestIsProtocol(t *testing.T) {
 				t.Errorf("Unknown.IsProtocol(%q) = %v, want %v", tt.s, got, tt.unknown)
 			}
 		})
+	}
+}
+
+func TestAddedAndPacketProtocols(t *testing.T) {
+	if got := dialect.Suricata.ActionAdded("ACCEPT"); got != dialect.Suricata8 {
+		t.Errorf("Suricata.ActionAdded(ACCEPT) = %v", got)
+	}
+	for _, a := range []string{"alert", "config", "nope"} {
+		if got := dialect.Suricata.ActionAdded(a); got != dialect.AnyVersion {
+			t.Errorf("Suricata.ActionAdded(%q) = %v", a, got)
+		}
+	}
+	if got := dialect.Snort2.ActionAdded("accept"); got != dialect.AnyVersion {
+		t.Errorf("Snort2.ActionAdded(accept) = %v", got)
+	}
+	for _, p := range []string{"doh2", "LDAP", "mdns", "pop3", "websocket"} {
+		if got := dialect.Suricata.ProtocolAdded(p); got != dialect.Suricata8 {
+			t.Errorf("Suricata.ProtocolAdded(%q) = %v", p, got)
+		}
+	}
+	if got := dialect.Suricata.ProtocolAdded("http"); got != dialect.AnyVersion {
+		t.Errorf("Suricata.ProtocolAdded(http) = %v", got)
+	}
+	for p, want := range map[string]bool{"tcp": true, "PKTHDR": true, "tcp-stream": true, "igmp": true, "http": false, "ftp-data": false, "nope": false} {
+		if got := dialect.Suricata.IsPacketProtocol(p); got != want {
+			t.Errorf("Suricata.IsPacketProtocol(%q) = %v", p, got)
+		}
+	}
+	if dialect.Snort2.IsPacketProtocol("pkthdr") || !dialect.Snort2.IsPacketProtocol("ip") || !dialect.Unknown.IsPacketProtocol("sctp") {
+		t.Error("IsPacketProtocol is wrong for Snort2 or Unknown")
+	}
+	for _, p := range dialect.Suricata.Protocols() {
+		if dialect.Suricata.IsPacketProtocol(p) == slices.Contains([]string{"http", "dns", "tls"}, p) && slices.Contains([]string{"http", "dns", "tls", "tcp", "udp"}, p) {
+			t.Errorf("IsPacketProtocol(%q) misclassifies it", p)
+		}
 	}
 }

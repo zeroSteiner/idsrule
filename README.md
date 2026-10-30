@@ -275,12 +275,14 @@ selected.
 | `content-snort3-modifiers` | error | no | no | yes | a content value carries Snort 3 style modifiers after its closing quote |
 | `continuation-trailing-whitespace` | warning | no | no | yes | spaces or tabs follow a line continuation's backslash |
 | `dialect-unknown` | warning | no | no | no | the dialect is unknown, so the checks that need one were skipped |
-| `header-invalid-action` | error | no | yes | no | the rule action is not one of the dialect's |
-| `header-invalid-address` | error | no | no | no | an address is not any, a $variable, an IP literal with an optional /prefix, or a list of those (a group the parser rejected is left to its syntax diagnostic) |
-| `header-invalid-port` | error | no | no | no | a port is not any, a $variable, a number, a range of 0 to 65535, or a list of those (a group the parser rejected is left to its syntax diagnostic) |
-| `header-invalid-protocol` | error | no | yes | no | the protocol is not one of the dialect's names (compared without regard to case; protocol numbers are not accepted) |
+| `header-invalid-action` | error | no | yes | no | the rule action is not one of the dialect's or the release's, has a scope the action does not take, or breaks the rules for firewall actions (see Policy.Firewall) |
+| `header-invalid-address` | error | no | no | no | an address is not any, a $variable, an IP literal with an optional /prefix, or a list of those, or is a list without brackets in Snort 2.9 (a group the parser rejected is left to its syntax diagnostic) |
+| `header-invalid-direction` | error | no | yes | no | the direction is "=>" where it is not allowed: in Snort 2.9, in Suricata before 8.0, or in a firewall rule |
+| `header-invalid-port` | error | no | no | no | a port is not any, a $variable, a number, a range of 0 to 65535, or a list of those, or is a list without brackets in Snort 2.9 (a group the parser rejected is left to its syntax diagnostic) |
+| `header-invalid-protocol` | error | no | yes | no | the protocol is not one of the dialect's or the release's names (compared without regard to case; protocol numbers are not accepted), or has a hook it cannot take |
 | `keyword-deprecated` | warning | no | yes | no | an option keyword is deprecated in the file's dialect |
 | `keyword-unknown` | warning | no | no | no | an option keyword is not known to any dialect |
+| `keyword-version` | error | no | yes | no | an option keyword does not exist in the release of the dialect the rules are written for: it came later or was removed (with no release set, a keyword that some release removed is a warning, and one that no release has an error) |
 | `keyword-wrong-dialect` | error | no | yes | no | an option keyword exists only in the other dialect |
 | `modifier-without-content` | error | no | yes | no | a content modifier appears before any payload match of the rule, or a buffer transform or buffer test before any sticky buffer |
 | `msg-duplicate` | error | no | no | no | two rules of the file have the same msg once normalized with Policy.NormalizeMsg |
