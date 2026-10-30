@@ -85,6 +85,20 @@ func checkValue(ctx *Context, o *cst.Option, k dialect.Keyword) {
 		return
 	}
 	switch k.Name {
+	case "file_data":
+		// The table cannot give file_data one kind: its value is mime in
+		// Snort 2.9 and a direction in Suricata 8.
+		switch {
+		case ctx.Dialect == dialect.Snort2 && logical != "mime":
+			ctx.Report(o.ValueSpan(), `file_data: expected "mime"`)
+		case ctx.Dialect != dialect.Suricata:
+		case ctx.before(dialect.Suricata8):
+			ctx.Report(o.ValueSpan(), "file_data takes no value in %s %s; a direction requires %s", ctx.Dialect, ctx.Version, dialect.Suricata8)
+		default:
+			if _, err := value.ParseDirection(logical); err != nil {
+				ctx.Report(o.ValueSpan(), `file_data: expected "to_client" or "to_server"`)
+			}
+		}
 	case "threshold":
 		if t, err := value.ParseThreshold(logical); err == nil && !t.HasType {
 			ctx.Report(o.ValueSpan(), "threshold requires type")

@@ -75,14 +75,17 @@ func ParseVersion(s string) (Version, error) {
 // Versions returns the releases of d the tables describe, oldest first. It
 // is empty for a dialect the tables describe as a single release, Snort 2.9,
 // and for Unknown. The slice is the caller's.
-func (d Dialect) Versions() []Version {
+func (d Dialect) Versions() []Version { return slices.Clone(d.versions()) }
+
+// versions returns the table of d's releases itself, for reading.
+func (d Dialect) versions() []Version {
 	if d == Suricata {
-		return slices.Clone(suricataVersions)
+		return suricataVersions
 	}
 	return nil
 }
 
 // HasVersion reports whether v is AnyVersion or one of d's Versions.
 func (d Dialect) HasVersion(v Version) bool {
-	return v == AnyVersion || slices.Contains(d.Versions(), v)
+	return v == AnyVersion || slices.Contains(d.versions(), v)
 }

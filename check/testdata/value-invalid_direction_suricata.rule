@@ -14,5 +14,8 @@ alert http any any -> any any (msg:"h"; file.data:to_both; content:"x"; sid:8; r
 alert http any any -> any any (msg:"i"; filesize:to_server,x; sid:9; rev:1;)
 # expect: value-invalid error "filesize: expected a number"
 alert http any any -> any any (msg:"j"; filesize:to_client; sid:10; rev:1;)
+# expect: value-invalid error "file_data: expected "to_client" or "to_server""
+alert http any any -> any any (msg:"l"; file_data:to_both; content:"x"; sid:12; rev:1;)
+alert http any any -> any any (msg:"m"; file_data:to_server; content:"x"; sid:13; rev:1;)
 # expect: value-invalid error "frame requires a value"
 alert ssh any any -> any any (msg:"k"; frame; content:"x"; sid:11; rev:1;)

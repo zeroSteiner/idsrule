@@ -268,7 +268,7 @@ func (k Keyword) In(d Dialect, v Version) bool {
 	if v != AnyVersion {
 		return k.inRelease(v)
 	}
-	vs := d.Versions()
+	vs := d.versions()
 	if len(vs) == 0 {
 		return true
 	}

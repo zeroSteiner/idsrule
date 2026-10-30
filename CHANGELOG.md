@@ -32,8 +32,9 @@ Before v1 the API may change in any minor release.
 - `dialect.KindRaw` moved up by one: `dialect.KindDirection` is
   declared before it. Code that stored `ValueKind` numbers must re-map
   them.
-- `file_data` takes an optional, undecoded value (Snort 2.9's `mime`,
-  Suricata 8's direction). `file.data`, `file.name`, `file.magic`, the
+- `file_data` takes an optional value. Its table kind is `KindRaw`, and
+  `value-invalid` checks the value per dialect: `mime` in Snort 2.9, and
+  a direction in Suricata 8 (none in 7.0). `file.data`, `file.name`, `file.magic`, the
   `http.accept*`, `http.connection`, `http.content_len`,
   `http.content_type`, `http.location`, `http.referer` and `http.server`
   buffers, and their legacy `http_*` forms, take an optional
@@ -54,7 +55,9 @@ Before v1 the API may change in any minor release.
     see `List.Bracketed`.
 - `parser.IsAction` accepts `config` and `accept`, and an action with a
   scope (`drop:flow`). A line that starts with one of them is parsed as
-  a rule.
+  a rule, except a line that starts with the bare word `config` and has
+  no `(`. That is a configuration directive (Snort's `config
+  classification: ...`), and it is still one `syntax-bad-header`.
 - `config` and `accept` are Suricata actions (`Dialect.Actions`), and
   `doh2` a Suricata protocol.
 
@@ -94,8 +97,9 @@ Before v1 the API may change in any minor release.
   frame, `frame:ssh.record.hdr`. It was unknown, so a `bsize` or
   `endswith` after it was also a `modifier-without-content` error.
 - Suricata 8 rule headers.
-  - Action scopes: `drop` and `pass` take `packet` or `flow`, `config`
-    takes `packet`, and `accept` takes `packet`, `flow`, `tx` or `hook`.
+  - Action scopes: `drop`, `pass` and the `reject` actions take `packet`
+    or `flow`, `config` takes `packet`, and `accept` takes `packet`,
+    `flow`, `tx` or `hook`.
   - The `config` action (Suricata 7 and later).
   - Protocol hooks: `http1:request_line`, `dns:request_complete`,
     `http1:<request_headers`, `tcp:all`.

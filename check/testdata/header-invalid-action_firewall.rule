@@ -3,6 +3,10 @@ accept:hook tcp:all any any <> any 80 (sid:1;)
 accept:hook http1:request_line any any -> any any (msg:"b"; sid:2; rev:1;)
 accept:flow,pass tcp any any -> any any (msg:"c"; sid:3; rev:1;)
 drop:packet,alert tcp any any -> any any (msg:"d"; sid:4; rev:1;)
+reject:flow tcp any any -> any any (msg:"d2"; sid:12; rev:1;)
+rejectboth:packet,alert tcp any any -> any any (msg:"d3"; sid:13; rev:1;)
+# expect: header-invalid-action error "a firewall rule needs an action scope, such as "reject:packet""
+reject tcp any any -> any any (msg:"d4"; sid:14; rev:1;)
 # expect: header-invalid-action error "alert takes no scope"
 accept:packet,alert:packet tcp any any -> any any (msg:"e"; sid:5; rev:1;)
 # expect: header-invalid-action error "a firewall rule starts with accept, config, drop or reject, not "alert""

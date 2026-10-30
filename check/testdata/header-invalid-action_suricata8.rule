@@ -2,6 +2,8 @@
 # Suricata 8 action scopes and the config action, outside firewall rules.
 drop:flow tcp any any -> any any (msg:"a"; sid:1; rev:1;)
 pass:packet tcp any any -> any any (msg:"b"; sid:2; rev:1;)
+reject:flow tcp any any -> any any (msg:"b2"; sid:10; rev:1;)
+rejectsrc:packet tcp any any -> any any (msg:"b3"; sid:11; rev:1;)
 config:packet dns any any -> any any (msg:"c"; dns.query; content:"x"; sid:3; rev:1;)
 config dns any any -> any any (msg:"d"; dns.query; content:"y"; sid:4; rev:1;)
 # expect: header-invalid-action error "drop takes the scope packet, flow, not "tx""

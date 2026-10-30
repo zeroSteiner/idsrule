@@ -1134,3 +1134,28 @@ func TestSuricata8Header(t *testing.T) {
 		t.Errorf("rule 3, an action list ending in ',': %v %v proto %q", h.ActionCommas, h.MoreActions, h.Proto.Lit)
 	}
 }
+
+// TestConfigDirective checks that a line starting with config is a rule
+// only when it has a body: Snort's configuration directives stay one bad
+// line, as before Suricata's config action was known.
+func TestConfigDirective(t *testing.T) {
+	src := []byte("config classification: not-suspicious,Not Suspicious Traffic,3\n" +
+		"config disable_decode_alerts\n" +
+		"config dns any any -> any any (dns.query; content:\"x\"; config:logging disable,type tx,scope tx; sid:1;)\n" +
+		"config:packet tcp any any -> any any (sid:2;)\n")
+	f, diags := Parse(src)
+	if got := f.Text(); got != string(src) {
+		t.Fatalf("Text() differs from the source:\n%s", got)
+	}
+	if n := len(f.Rules()); n != 2 {
+		t.Errorf("%d rules, want 2 (the config rules with a body)", n)
+	}
+	if len(diags) != 2 {
+		t.Fatalf("%d diagnostics, want one per directive line: %v", len(diags), diags)
+	}
+	for _, d := range diags {
+		if d.Rule != RuleBadHeader || !strings.Contains(d.Message, `got "config"`) {
+			t.Errorf("diagnostic %v, want syntax-bad-header at the config directive", d)
+		}
+	}
+}

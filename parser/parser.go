@@ -53,6 +53,26 @@ func IsAction(word string) bool {
 	return actions[name]
 }
 
+// configDirective reports whether the line at the current token, which
+// starts with an action, is a configuration directive rather than a rule:
+// it starts with the bare word config, as Snort's "config classification:
+// ..." does, and no '(' follows on the line. A Suricata rule with the
+// config action has a body, so its '(' tells it apart.
+func (p *parser) configDirective() bool {
+	if p.peek().Lit != "config" {
+		return false
+	}
+	for _, t := range p.toks[p.pos+1:] {
+		if t.Kind == token.LParen {
+			return false
+		}
+		if t.Kind == token.Newline || t.Kind == token.EOF {
+			break
+		}
+	}
+	return true
+}
+
 // Parse lexes and parses src. It never fails: the returned file is never
 // nil, its text is src byte for byte, and whatever the input the call
 // returns rather than panicking.
@@ -192,7 +212,7 @@ func (p *parser) parseFile() *cst.File {
 			cst.Seal(c, p.src, 0, ckids...)
 			f.Items = append(f.Items, c)
 			kids = append(kids, c)
-		case t.Kind == token.Word && IsAction(t.Lit):
+		case t.Kind == token.Word && IsAction(t.Lit) && !p.configDirective():
 			r, trailing := p.parseRule(lead)
 			f.Items = append(f.Items, r)
 			kids = append(kids, r)

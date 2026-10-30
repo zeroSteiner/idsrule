@@ -1,3 +1,5 @@
 # lint: dialect=snort2
 # Snort 2.9 reads file_data:mime.
 alert tcp any any -> any any (msg:"a"; file_data:mime; content:"x"; sid:1; rev:1;)
+# expect: value-invalid error "file_data: expected "mime""
+alert tcp any any -> any any (msg:"b"; file_data:to_client; content:"x"; sid:2; rev:1;)

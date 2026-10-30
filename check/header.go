@@ -49,11 +49,16 @@ func init() {
 }
 
 // actionScopes are the scopes each Suricata 8 action takes after a ':'.
+// The reject actions drop too, and take drop's scopes.
 var actionScopes = map[string][]string{
-	"drop":   {"packet", "flow"},
-	"pass":   {"packet", "flow"},
-	"config": {"packet"},
-	"accept": {"packet", "flow", "tx", "hook"},
+	"drop":       {"packet", "flow"},
+	"reject":     {"packet", "flow"},
+	"rejectsrc":  {"packet", "flow"},
+	"rejectdst":  {"packet", "flow"},
+	"rejectboth": {"packet", "flow"},
+	"pass":       {"packet", "flow"},
+	"config":     {"packet"},
+	"accept":     {"packet", "flow", "tx", "hook"},
 }
 
 // firewallFirstActions are the actions a firewall rule may start with, and
@@ -79,11 +84,14 @@ func checkHeaderInvalidAction(ctx *Context) {
 		if len(h.MoreActions) > 0 && !ctx.firewall() {
 			ctx.Report(h.MoreActions[0].Span(), "only a Suricata firewall rule lists several actions")
 		}
-		scope := ""
+		scope, first := "", ""
 		reported := len(ctx.out)
 		for i, a := range append([]token.Token{h.Action}, h.MoreActions...) {
 			name, sc, hasScope := strings.Cut(a.Lit, ":")
 			name = strings.ToLower(name)
+			if i == 0 {
+				first = name
+			}
 			if !checkAction(ctx, a, name, sc, hasScope) || !ctx.firewall() {
 				continue
 			}
@@ -92,7 +100,7 @@ func checkHeaderInvalidAction(ctx *Context) {
 				ctx.Report(a.Span(), "a firewall rule starts with accept, config, drop or reject, not %q", name)
 			case i > 0 && !slices.Contains(firewallLaterActions, name):
 				ctx.Report(a.Span(), "only alert or pass may follow a firewall rule's first action, not %q", name)
-			case i > 0 && name == "pass" && !strings.EqualFold(strings.SplitN(h.Action.Lit, ":", 2)[0], "accept"):
+			case i > 0 && name == "pass" && first != "accept":
 				ctx.Report(a.Span(), "pass follows only accept in a firewall rule")
 			case name == "pass" && !hasScope && scope != "" && !slices.Contains(actionScopes["pass"], scope):
 				ctx.Report(a.Span(), "pass inherits the scope %q, which it does not take; use packet or flow", scope)

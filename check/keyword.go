@@ -88,11 +88,7 @@ func checkKeywordDeprecated(ctx *Context) {
 				// keyword-version reports it as removed.
 				continue
 			}
-			if k.Successor != "" {
-				ctx.Report(o.Keyword.Span(), "%q is deprecated in %s; use %q", k.Name, ctx.Dialect, k.Successor)
-			} else {
-				ctx.Report(o.Keyword.Span(), "%q is deprecated in %s", k.Name, ctx.Dialect)
-			}
+			ctx.Report(o.Keyword.Span(), "%q is deprecated in %s%s", k.Name, ctx.Dialect, useSuccessor(k))
 		}
 	}
 }
