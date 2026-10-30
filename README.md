@@ -24,23 +24,12 @@ go get github.com/zeroSteiner/idsrule
 The module needs Go 1.24 or later and has no dependencies outside the
 standard library.
 
-The repository is private, so the go command must be told to fetch it
-directly from GitHub rather than through the public module proxy and
-checksum database, and git needs credentials that can read it:
-
-```sh
-go env -w GOPRIVATE=github.com/zeroSteiner/idsrule
-# then let git authenticate, for example over SSH:
-git config --global url."git@github.com:".insteadOf "https://github.com/"
-```
-
-In CI, set `GOPRIVATE` in the job's environment and configure git with a
-token that can read the repository before the first `go` command runs.
-Workflows that GitHub runs for pull requests from forks get no secrets,
-so they cannot fetch a private module at all: a consumer that takes
-contributions through forks, as initial-access-community does, needs this
-repository to be public or a vendored copy (`go mod vendor`) committed in
-its own tree.
+The repository is public, so the go command fetches the module through
+the public module proxy and checksum database like any other: no
+credentials and no `GOPRIVATE` setting are needed, and CI jobs, those
+GitHub runs for pull requests from forks included, can fetch it. A
+`GOPRIVATE` setting left over from when the repository was private still
+works, since git can read it without credentials, but it can go.
 
 ## Quick start
 
