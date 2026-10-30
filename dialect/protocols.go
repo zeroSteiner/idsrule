@@ -10,8 +10,8 @@ var snort2Protocols = []string{"ip", "tcp", "udp", "icmp"}
 
 // suricataProtocols are the protocols a Suricata rule header accepts: the
 // network protocols, their aliases, and the application-layer protocols.
-// The list follows Suricata 7 and includes the protocols later versions
-// added, so that a rule for a newer engine is not rejected.
+// The list is the union of Suricata 7.0's and 8.0's; ProtocolAdded says
+// which came with 8.0.
 var suricataProtocols = slices.Concat(suricataPacketProtocols, suricataAppProtocols)
 
 // suricataPacketProtocols are the Suricata protocols of the network and

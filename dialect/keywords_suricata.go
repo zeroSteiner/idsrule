@@ -62,8 +62,12 @@ func addedIn(v Version, k Keyword) Keyword {
 	return k
 }
 
-// suricataKeywords are the keywords that exist only in Suricata, following
-// the Suricata 7 keyword index plus a few from later versions. Values with grammars of their own are KindRaw.
+// suricataKeywords are the keywords that exist only in Suricata: every
+// keyword Suricata 7.0 and 8.0 register (from their sigmatch_table and Rust
+// registrations), apart from internal and demo ones, with Added and Removed
+// saying which of the two releases has each. A value read by Suricata's
+// integer parser is KindRelInt or KindUintEnum with its Bits; a value with
+// a grammar of its own is KindRaw.
 var suricataKeywords = []Keyword{
 	// Content modifiers, buffer tests and transforms. A buffer test
 	// (bsize, absent) examines the active sticky buffer itself; a

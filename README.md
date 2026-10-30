@@ -208,8 +208,10 @@ recovers at the granularity of a header part, an option or a line, so one
 bad rule never costs the rest of the file. The tree references `src` directly, so do not modify `src` after
 parsing.
 
-**Dialect-agnostic parse, dialect-aware checks.** The parser knows only
-the grammar Snort 2.9 and Suricata share. What the options mean comes from
+**Dialect-agnostic parse, dialect-aware checks.** The parser reads the
+grammar of both dialects, Suricata 8's header extensions included (action
+scopes and lists, protocol hooks, `=>`, address and port lists without
+brackets); the checks report each extension where it does not belong. What the options mean comes from
 the keyword tables of the `dialect` package and is applied by the checks,
 which run for one dialect: `Options.Dialect` or, when that is
 `DialectUnknown`, the dialect detected from the file name (`*.snort.rule`,
@@ -217,14 +219,32 @@ which run for one dialect: `Options.Dialect` or, when that is
 unknown gets a `dialect-unknown` warning and the checks that need a dialect
 are skipped.
 
-**Options, Policy, Selection.** `Options` holds the dialect, the `Policy`,
+**Versions.** `Options.Version` names the release of the dialect the rules
+are written for: `VersionSuricata7` or `VersionSuricata8`
+(`ParseVersion("8")` reads one from a configuration). The zero value,
+`VersionAny`, holds rules to what any release the tables describe accepts:
+a keyword that only Suricata 8 has passes, and one that 8.0 removed is a
+warning. With a release set, the checks hold the rules to that release:
+`keyword-version` reports keywords it lacks, and the header and value
+checks report syntax it does not read, such as `=>`, hooks or hex
+integers in 7.0. A version applies to the files of a dialect that has
+it, and Snort 2.9 has none.
+
+**Firewall rules.** Suricata 8 loads firewall rules from files of their
+own. Set `Policy.Firewall` when linting them: the `accept` action and
+action lists such as `accept:hook,alert` are then valid, and
+`header-invalid-action` holds the rules to what Suricata requires of
+firewall rules. Outside firewall files, `accept` is an error.
+
+**Options, Policy, Selection.** `Options` holds the dialect and version, the `Policy`,
 the `Selection` and the optional `SIDIndex`; `DefaultOptions()` detects
 the dialect, requires a rev and runs every non-style check. The `Policy`
 says what the rules are held to: the sid range (`SIDMin`, `SIDMax`), the
 placeholder threshold (`PlaceholderBelow`: a sid below it is a draft and
 is exempt from the sid checks), whether a rev is required (`RequireRev`),
 the msg prefix (`MsgPrefix`), how messages are normalized before
-duplicates are compared (`NormalizeMsg`), and the style rules (`Style`).
+duplicates are compared (`NormalizeMsg`), whether the files are Suricata
+firewall rules (`Firewall`), and the style rules (`Style`).
 The `Selection` says which checks run and how they report: every non-style
 check runs by default, and `Enable`, `Disable`, `Style` and `Severity`
 adjust that per run (`Disable` also removes a style check that `Style`
@@ -377,9 +397,11 @@ holds every fix to that.
 ## Extending the dialect tables
 
 What the checks know about keywords is data: each keyword is one row of a
-table in the `dialect` package that says which dialects have it, where it
-is deprecated and in favour of what, whether it takes a value and of which
-grammar, what role it plays and whether it may repeat. Adding or correcting
+table in the `dialect` package that says which dialects have it, which
+Suricata release added or removed it, where it is deprecated and in favour
+of what, whether it takes a value and of which grammar (with the integer
+width Suricata reads it into), what role it plays and whether it may
+repeat. Adding or correcting
 a keyword is a one-row change, checked by the table invariant tests and the
 corpus coverage tests. [`dialect/README.md`](dialect/README.md) describes
 the fields, the invariants and the rule to follow when the documentation
