@@ -132,6 +132,16 @@ var suricataKeywords = []Keyword{
 	sticky("dns.answer.name", ""),
 	appLayer("dns.opcode", KindRelInt),
 
+	// FTP. The ftp.* keywords are new in Suricata 8.
+	sticky("ftp.command", ""),
+	sticky("ftp.command_data", ""),
+	sticky("ftp.reply", ""),
+	sticky("ftp.completion_code", ""),
+	appLayer("ftp.dynamic_port", KindRelInt),
+	appLayer("ftp.mode", KindIdent),
+	appLayer("ftp.reply_received", KindIdent),
+	appLayer("ftpdata_command", KindIdent),
+
 	// TLS.
 	sticky("tls.sni", ""),
 	sticky("tls.cert_subject", ""),
@@ -275,7 +285,6 @@ var suricataKeywords = []Keyword{
 	sticky("dnp3.data", ""),
 	appLayer("nfs_procedure", KindRaw),
 	appLayer("nfs_version", KindRaw),
-	appLayer("ftpdata_command", KindIdent),
 	// app-layer-protocol takes an optional '!' before the name.
 	{Name: "app-layer-protocol", Dialects: SetSuricata, Value: Required, Kind: KindRaw, Role: RoleAppLayer},
 	{Name: "app-layer-event", Dialects: SetSuricata, Value: Required, Kind: KindIdent, Role: RoleAppLayer},

@@ -17,6 +17,13 @@ Before v1 the API may change in any minor release.
   modifier applies to the latest content whatever options come between.
   Values given as a variable are skipped.
 
+### Fixed
+
+- `keyword-unknown` no longer reports the FTP keywords Suricata 8 added:
+  the sticky buffers `ftp.command`, `ftp.command_data`, `ftp.reply` and
+  `ftp.completion_code`, and `ftp.dynamic_port`, `ftp.mode` and
+  `ftp.reply_received`, which take a value.
+
 ## [0.1.0] - 2026-10-11
 
 The first release: a lossless parser for Suricata and Snort 2.9 rule files,

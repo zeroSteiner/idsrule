@@ -191,6 +191,8 @@ func TestTableContents(t *testing.T) {
 		"absent":            {dialect.SetSuricata, 0, dialect.Optional, dialect.KindRaw, dialect.RoleBufferTest, true, "", ""},
 		"noalert":           {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RolePostDetect, false, "", ""},
 		"mqtt.qos":          {dialect.SetSuricata, 0, dialect.Required, dialect.KindRaw, dialect.RoleAppLayer, false, "", ""},
+		"ftp.command":       {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RoleStickyBuffer, true, "", ""},
+		"ftp.dynamic_port":  {dialect.SetSuricata, 0, dialect.Required, dialect.KindRelInt, dialect.RoleAppLayer, false, "", ""},
 		"luajit":            {dialect.SetSuricata, dialect.SetSuricata, dialect.Required, dialect.KindRaw, dialect.RoleOther, true, "", "lua"},
 		"uricontent":        {dialect.Both, dialect.SetSuricata, dialect.Required, dialect.KindContent, dialect.RolePayload, true, "", ""},
 		"logto":             {dialect.SetSnort2, 0, dialect.Required, dialect.KindQuoted, dialect.RolePostDetect, false, "", ""},
