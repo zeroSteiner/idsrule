@@ -76,6 +76,17 @@ func TestTableInvariants(t *testing.T) {
 				checkSuccessor(t, k)
 			}
 			checkVersions(t, k)
+			if k.Bits != 0 {
+				if k.Bits != 8 && k.Bits != 16 && k.Bits != 32 && k.Bits != 64 {
+					t.Errorf("Bits %d is not 8, 16, 32 or 64", k.Bits)
+				}
+				if k.Kind != dialect.KindRelInt && k.Kind != dialect.KindUrilen && k.Kind != dialect.KindUintEnum {
+					t.Errorf("Bits on a %v value; it is for the integers Suricata's integer parser reads", k.Kind)
+				}
+				if !k.Dialects.Has(dialect.Suricata) {
+					t.Error("Bits on a keyword Suricata does not have")
+				}
+			}
 			for _, d := range []dialect.Dialect{dialect.Snort2, dialect.Suricata} {
 				_, ok := dialect.Lookup(d, k.Name)
 				if want := k.Dialects.Has(d); ok != want {
@@ -225,7 +236,7 @@ func TestTableContents(t *testing.T) {
 		"noalert":           {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RolePostDetect, false, "", ""},
 		"mqtt.qos":          {dialect.SetSuricata, 0, dialect.Required, dialect.KindRaw, dialect.RoleAppLayer, false, "", ""},
 		"ftp.command":       {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RoleStickyBuffer, true, "", ""},
-		"ftp.dynamic_port":  {dialect.SetSuricata, 0, dialect.Required, dialect.KindRelInt, dialect.RoleAppLayer, false, "", ""},
+		"ftp.dynamic_port":  {dialect.SetSuricata, 0, dialect.Required, dialect.KindRelInt, dialect.RoleAppLayer, true, "", ""},
 		"luajit":            {dialect.SetSuricata, dialect.SetSuricata, dialect.Required, dialect.KindRaw, dialect.RoleOther, true, "", "lua"},
 		"uricontent":        {dialect.Both, dialect.SetSuricata, dialect.Required, dialect.KindContent, dialect.RolePayload, true, "", ""},
 		"logto":             {dialect.SetSnort2, 0, dialect.Required, dialect.KindQuoted, dialect.RolePostDetect, false, "", ""},

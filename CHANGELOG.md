@@ -41,6 +41,20 @@ Before v1 the API may change in any minor release.
   - `threshold: type backoff` outside Suricata 8.
 - `value.RelInt` gains `Forms`, so a `RelInt` literal compared with
   `==` must set it.
+- In Suricata, `value-invalid` now applies the checks of Suricata's
+  integer parser to the keywords it reads with that parser (those whose
+  `Keyword.Bits` is set):
+  - a number too large for the keyword's width is an error
+    (`itype:300`);
+  - so is a range with no number strictly between its bounds
+    (`dsize:5-6`; Suricata's ranges exclude them);
+  - and so is a comparison no number satisfies, or every number does
+    (`dsize:<0`, `itype:>255`).
+  Snort 2.9's ranges include their bounds, so its rules are not held to
+  these checks.
+- `dns.opcode`, `ftp.dynamic_port` and `rfb.secresult` are `Repeatable`,
+  since Suricata takes several conditions on one field, so
+  `option-duplicate` no longer reports them.
 - `tos` is `KindTos`, the `[!]N` or `[!]xHH` form both engines read, not
   `KindRelInt`, so `tos:<5` is now an error. `id`, `icmp_id` and
   `icmp_seq` are `KindQuotedUint`, and `rfb.secresult` is `KindUintEnum`.
@@ -156,6 +170,32 @@ Before v1 the API may change in any minor release.
   `quic.cyu.hash`) that is not 32 bytes, which Suricata refuses. It also
   reports one with a byte that is not a hex digit: it never matches, and
   Suricata 8 refuses it (a warning before 8.0 or with no release set).
+- The rest of Suricata's keywords: the tables now have every keyword
+  Suricata 7.0.12 and 8.0.8 register, apart from internal and demo ones
+  (`__filestore__postmatch__`, `__flowvar__postmatch__`, `template*`).
+  This adds 125 keywords, 98 of them new in 8.0 and marked so:
+  - whole families: `email.*`, `ldap.*`, `sdp.*`, `enip.*`, `ntp.*`,
+    `mdns.*`, `websocket.*`, `vlan.*`;
+  - the DNS v2 buffers (`dns.queries.rrname` and the like),
+    `dns.rcode`, `dns.rrtype`, and the new SIP header buffers;
+  - `tls.alpn`, `tls.subjectaltname`, `pgsql.query`, `smb.version`,
+    `snmp.trap_type`, `tcp.wscale`, `tcp.session`, `flow.pkts`,
+    `flow.bytes`, `flow.elephant`, `app-layer-state` and `entropy`;
+  - the transforms `domain`, `tld`, `gunzip`, `zlib_deflate` and
+    `luaxform`.
+  The other 27 were already missing for Suricata 7: the checksum
+  keywords (`ipv4-csum` and the like, used by Suricata's own
+  `decoder-events.rules`), `flowvar`, `pktvar`, `alert`,
+  `nfq_set_mark`, `ip.src`, `ip.dst`, `tcp.ack`, `tcp.seq`,
+  `tcp.window`, `nfs.version`, `tls_store`, and the aliases
+  `dnp3.func`, `dnp3.ind`, `dnp3.obj`, `http.uri.normalized`,
+  `ja4_hash` and `ssh-hassh*`. A value Suricata reads with its integer
+  parser is `KindRelInt`, or `KindUintEnum` where names are allowed,
+  with its width. Other values are undecoded.
+- `dialect.Keyword.Bits`: the width of the integer Suricata's integer
+  parser reads a keyword's value into. It is set on every keyword that
+  parser reads (`dsize`, `itype`, `bsize`, `filesize`, the new `enip.*`
+  numbers, ...).
 - `content-depth-too-short` check (error): a `depth` or `within` smaller
   than the content it modifies, measured on the decoded pattern (escapes
   and `|hex|` bytes count once each), so it can never match; Suricata

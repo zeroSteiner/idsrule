@@ -40,8 +40,8 @@ var commonKeywords = []Keyword{
 	// and a direction in Suricata 8, so the value is not decoded.
 	{Name: "file_data", Dialects: Both, Value: Optional, Kind: KindRaw, Role: RoleStickyBuffer, Repeatable: true},
 	{Name: "pkt_data", Dialects: Both, Value: NoValue, Kind: KindNone, Role: RoleStickyBuffer, Repeatable: true},
-	{Name: "urilen", Dialects: Both, Value: Required, Kind: KindUrilen, Role: RolePayload},
-	{Name: "dsize", Dialects: Both, Value: Required, Kind: KindRelInt, Role: RoleNonPayload},
+	{Name: "urilen", Dialects: Both, Value: Required, Kind: KindUrilen, Role: RolePayload, Bits: 16},
+	{Name: "dsize", Dialects: Both, Value: Required, Kind: KindRelInt, Role: RoleNonPayload, Bits: 16},
 	// replace is a content-like quoted pattern that overwrites the match.
 	{Name: "replace", Dialects: Both, Value: Required, Kind: KindContent, Role: RoleModifier, Repeatable: true},
 	// asn1 takes a comma-separated list of checks with arguments.
@@ -68,8 +68,8 @@ var commonKeywords = []Keyword{
 	{Name: "seq", Dialects: Both, Value: Required, Kind: KindUint, Role: RoleNonPayload},
 	{Name: "ack", Dialects: Both, Value: Required, Kind: KindUint, Role: RoleNonPayload},
 	{Name: "window", Dialects: Both, Value: Required, Kind: KindRelInt, Role: RoleNonPayload},
-	{Name: "itype", Dialects: Both, Value: Required, Kind: KindRelInt, Role: RoleNonPayload},
-	{Name: "icode", Dialects: Both, Value: Required, Kind: KindRelInt, Role: RoleNonPayload},
+	{Name: "itype", Dialects: Both, Value: Required, Kind: KindRelInt, Role: RoleNonPayload, Bits: 8},
+	{Name: "icode", Dialects: Both, Value: Required, Kind: KindRelInt, Role: RoleNonPayload, Bits: 8},
 	{Name: "icmp_id", Dialects: Both, Value: Required, Kind: KindQuotedUint, Role: RoleNonPayload},
 	{Name: "icmp_seq", Dialects: Both, Value: Required, Kind: KindQuotedUint, Role: RoleNonPayload},
 	{Name: "rpc", Dialects: Both, Value: Required, Kind: KindRaw, Role: RoleNonPayload},

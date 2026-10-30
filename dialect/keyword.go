@@ -245,6 +245,13 @@ type Keyword struct {
 	// Repeatable reports whether the keyword may appear more than once in
 	// one rule.
 	Repeatable bool
+	// Bits is the width of the unsigned integer that Suricata's integer
+	// parser (rust/src/detect/uint.rs) reads the value into: 8, 16, 32 or
+	// 64. It is zero when that parser does not read the value. In Suricata
+	// it bounds the numbers, and it subjects the value to the parser's
+	// checks: a range must have a number strictly between its bounds, and
+	// a comparison must be satisfiable (no <0, >=0, >max or <=max).
+	Bits uint8
 	// Directional reports whether the value may begin with a direction,
 	// to_client or to_server, and a ',' before the value proper:
 	// filesize:to_server,>100. Suricata 8 reads it; the value after the

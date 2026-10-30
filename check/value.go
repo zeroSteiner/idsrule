@@ -2,6 +2,7 @@ package check
 
 import (
 	"errors"
+	"math"
 	"strings"
 
 	"github.com/zeroSteiner/idsrule/cst"
@@ -142,6 +143,9 @@ func checkIntegerForms(ctx *Context, o *cst.Option, k dialect.Keyword, text stri
 		r = u.RelInt
 	case dialect.KindUintEnum:
 		e, _ := value.ParseUintEnum(text)
+		if e.Name != "" {
+			return
+		}
 		r = e.RelInt
 	case dialect.KindNone, dialect.KindUint, dialect.KindIntOrVar, dialect.KindQuoted,
 		dialect.KindIdent, dialect.KindContent, dialect.KindPCRE, dialect.KindFlow,
@@ -159,6 +163,39 @@ func checkIntegerForms(ctx *Context, o *cst.Option, k dialect.Keyword, text stri
 			form = "a size unit on a comparison or a range"
 		}
 		ctx.Report(o.ValueSpan(), "%s: %s requires %s %s or later", k.Name, form, ctx.Dialect, dialect.Suricata8)
+	case ctx.Dialect == dialect.Suricata && k.Bits != 0:
+		checkSuricataUint(ctx, o, k, r)
+	}
+}
+
+// checkSuricataUint reports what Suricata's integer parser refuses in a
+// value it reads into a k.Bits-bit integer: a number too large for it, a
+// range with no number strictly between its bounds (Suricata's ranges
+// exclude them), and a comparison no number satisfies.
+func checkSuricataUint(ctx *Context, o *cst.Option, k dialect.Keyword, r value.RelInt) {
+	limit := int64(math.MaxInt64)
+	if k.Bits < 64 {
+		limit = 1<<k.Bits - 1
+	}
+	for _, n := range []int64{r.A, r.B} {
+		if n > limit {
+			ctx.Report(o.ValueSpan(), "%s: %d does not fit in %d bits (at most %d)", k.Name, n, k.Bits, limit)
+			return
+		}
+	}
+	switch r.Op {
+	case "-", "<>", "!-", "!<>":
+		if r.B-r.A < 2 {
+			ctx.Report(o.ValueSpan(), "%s: no number lies strictly between %d and %d, and Suricata's ranges exclude their bounds", k.Name, r.A, r.B)
+		}
+	case "<", ">=":
+		if r.A == 0 {
+			ctx.Report(o.ValueSpan(), "%s: %s0 compares with the smallest number, so it is never or always true; Suricata refuses it", k.Name, r.Op)
+		}
+	case ">", "<=":
+		if r.A == limit && k.Bits < 64 {
+			ctx.Report(o.ValueSpan(), "%s: %s%d compares with the largest %d-bit number, so it is never or always true; Suricata refuses it", k.Name, r.Op, limit, k.Bits)
+		}
 	}
 }
 
