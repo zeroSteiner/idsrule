@@ -234,4 +234,42 @@ type Keyword struct {
 	// empty when the keyword is not deprecated or when nothing replaces it
 	// one for one.
 	Successor string
+	// Added is the first release of the keyword's dialect that has it:
+	// Suricata8 for "ftp.command". It is AnyVersion when every release
+	// the tables describe has it. Like Removed, it is set only on a
+	// keyword of one dialect, a dialect with Versions.
+	Added Version
+	// Removed is the first release of the keyword's dialect that no longer
+	// accepts it: Suricata8 for "ssh.protoversion". It is AnyVersion when
+	// no release the tables describe has removed it.
+	Removed Version
+}
+
+// In reports whether the keyword exists in release v of dialect d: d is one
+// of its Dialects and v is neither before Added nor at or after Removed.
+// For AnyVersion it reports whether some release of d the tables describe
+// has the keyword, which for a dialect without Versions is every keyword of
+// the dialect.
+func (k Keyword) In(d Dialect, v Version) bool {
+	if !k.Dialects.Has(d) {
+		return false
+	}
+	if v != AnyVersion {
+		return k.inRelease(v)
+	}
+	vs := d.Versions()
+	if len(vs) == 0 {
+		return true
+	}
+	for _, r := range vs {
+		if k.inRelease(r) {
+			return true
+		}
+	}
+	return false
+}
+
+// inRelease reports whether release v lies within [Added, Removed).
+func (k Keyword) inRelease(v Version) bool {
+	return (k.Added == AnyVersion || v >= k.Added) && (k.Removed == AnyVersion || v < k.Removed)
 }

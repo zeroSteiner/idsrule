@@ -41,6 +41,11 @@ func TestOptionsValidate(t *testing.T) {
 		{name: "unknown check id", opts: idsrule.Options{Checks: idsrule.Selection{Enable: []string{"not-a-check"}}}, wantErr: `checks: unknown check id "not-a-check"`},
 		{name: "known check id", opts: idsrule.Options{Checks: idsrule.Selection{Enable: []string{"sid-duplicate"}, Disable: []string{"msg-prefix"}, Severity: map[string]idsrule.Severity{"rev-missing": idsrule.SeverityWarning}}}},
 		{name: "bad severity", opts: idsrule.Options{Checks: idsrule.Selection{Severity: map[string]idsrule.Severity{"x": "loud"}}}, wantErr: `checks: invalid severity "loud"`},
+		{name: "suricata 8", opts: idsrule.Options{Dialect: idsrule.DialectSuricata, Version: idsrule.VersionSuricata8}},
+		{name: "detected dialect, suricata 7", opts: idsrule.Options{Version: idsrule.VersionSuricata7}},
+		{name: "snort2 has no 8.0", opts: idsrule.Options{Dialect: idsrule.DialectSnort2, Version: idsrule.VersionSuricata8}, wantErr: "version 8.0 is not a release of snort2"},
+		{name: "unknown release", opts: idsrule.Options{Dialect: idsrule.DialectSuricata, Version: dialect.NewVersion(6, 0)}, wantErr: "version 6.0 is not a release of suricata"},
+		{name: "unknown release, detected dialect", opts: idsrule.Options{Version: dialect.NewVersion(9, 0)}, wantErr: "version 9.0 is not a release of unknown"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

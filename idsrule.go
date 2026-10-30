@@ -27,6 +27,8 @@ type (
 
 	// Dialect is an alias for [dialect.Dialect].
 	Dialect = dialect.Dialect
+	// Version is an alias for [dialect.Version].
+	Version = dialect.Version
 
 	// Policy is an alias for [check.Policy].
 	Policy = check.Policy
@@ -60,6 +62,16 @@ const (
 )
 
 const (
+	// VersionAny is [dialect.AnyVersion]: hold the rules to what any
+	// release of their dialect accepts.
+	VersionAny = dialect.AnyVersion
+	// VersionSuricata7 is [dialect.Suricata7].
+	VersionSuricata7 = dialect.Suricata7
+	// VersionSuricata8 is [dialect.Suricata8].
+	VersionSuricata8 = dialect.Suricata8
+)
+
+const (
 	// SpacingAny is [check.SpacingAny].
 	SpacingAny = check.SpacingAny
 	// SpacingRequire is [check.SpacingRequire].
@@ -73,6 +85,12 @@ type Options struct {
 	// Dialect selects the rule language. DialectUnknown means detect it
 	// from the filename.
 	Dialect Dialect
+	// Version is the release of the dialect the rules are written for,
+	// such as VersionSuricata8. VersionAny, the zero value, holds them to
+	// what any release accepts. It must be a release of Dialect or, when
+	// Dialect is DialectUnknown, of some dialect; a file of a dialect that
+	// does not have it is checked as VersionAny.
+	Version Version
 	// Policy is what the rules are held to.
 	Policy Policy
 	// Checks selects which checks run and how they report.
@@ -100,6 +118,8 @@ func (o Options) Validate() error {
 	var errs []error
 	if !o.Dialect.Valid() {
 		errs = append(errs, fmt.Errorf("invalid dialect %s", o.Dialect))
+	} else if !versionKnown(o.Dialect, o.Version) {
+		errs = append(errs, fmt.Errorf("version %s is not a release of %s the tables describe", o.Version, o.Dialect))
 	}
 	if err := o.Policy.Validate(); err != nil {
 		errs = append(errs, fmt.Errorf("policy: %w", err))
@@ -108,6 +128,21 @@ func (o Options) Validate() error {
 		errs = append(errs, fmt.Errorf("checks: %w", err))
 	}
 	return errors.Join(errs...)
+}
+
+// versionKnown reports whether v is VersionAny or a release of d, or of
+// any dialect when d is DialectUnknown.
+func versionKnown(d Dialect, v Version) bool {
+	if d != DialectUnknown {
+		return d.HasVersion(v)
+	}
+	return DialectSnort2.HasVersion(v) || DialectSuricata.HasVersion(v)
+}
+
+// ParseVersion parses a version such as "8" or "8.0". See
+// [dialect.ParseVersion].
+func ParseVersion(s string) (Version, error) {
+	return dialect.ParseVersion(s)
 }
 
 // DialectFromFilename detects the dialect from a file name. See

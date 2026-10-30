@@ -163,6 +163,7 @@ func TestRegisteredSet(t *testing.T) {
 		{"header-invalid-protocol", diag.SeverityError, true, false},
 		{"keyword-deprecated", diag.SeverityWarning, true, false},
 		{"keyword-unknown", diag.SeverityWarning, false, false},
+		{"keyword-version", diag.SeverityError, true, false},
 		{"keyword-wrong-dialect", diag.SeverityError, true, false},
 		{"modifier-without-content", diag.SeverityError, true, false},
 		{"msg-duplicate", diag.SeverityError, false, false},

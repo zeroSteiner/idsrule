@@ -288,3 +288,30 @@ func TestLint_NeverPanics(t *testing.T) {
 		t.Error("Check(nil) returned diagnostics")
 	}
 }
+
+// TestLint_VersionFollowsDialect checks that a version is applied to the
+// files whose detected dialect has it and ignored for the others.
+func TestLint_VersionFollowsDialect(t *testing.T) {
+	opts := idsrule.DefaultOptions()
+	opts.Version = idsrule.VersionSuricata7
+	opts.Checks.Enable = []string{"keyword-version"}
+	rule := []byte(`alert ftp any any -> any any (msg:"a"; ftp.command; content:"PASS"; sid:1; rev:1;)` + "\n")
+	has := func(ds []idsrule.Diagnostic) bool {
+		for _, d := range ds {
+			if d.Rule == "keyword-version" {
+				return true
+			}
+		}
+		return false
+	}
+	if !has(idsrule.Lint("x.suricata.rules", rule, opts)) {
+		t.Error("a Suricata file linted for 7.0 does not report ftp.command, which needs 8.0")
+	}
+	if ds := idsrule.Lint("x.snort.rules", rule, opts); has(ds) {
+		t.Errorf("a Snort file reports keyword-version: %v", ds)
+	}
+	opts.Version = idsrule.VersionAny
+	if ds := idsrule.Lint("x.suricata.rules", rule, opts); has(ds) {
+		t.Errorf("with no version, ftp.command is reported: %v", ds)
+	}
+}

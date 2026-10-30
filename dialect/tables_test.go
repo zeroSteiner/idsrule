@@ -74,6 +74,7 @@ func TestTableInvariants(t *testing.T) {
 			if k.Successor != "" {
 				checkSuccessor(t, k)
 			}
+			checkVersions(t, k)
 			for _, d := range []dialect.Dialect{dialect.Snort2, dialect.Suricata} {
 				_, ok := dialect.Lookup(d, k.Name)
 				if want := k.Dialects.Has(d); ok != want {
@@ -111,17 +112,18 @@ func checkReplaces(t *testing.T, k dialect.Keyword) {
 	}
 }
 
-// checkSuccessor checks that k.Successor is set only on a deprecated
-// keyword and names a keyword other than k that exists, undeprecated, in
-// every dialect k is deprecated in.
+// checkSuccessor checks that k.Successor is set only on a deprecated or
+// removed keyword and names a keyword other than k that exists,
+// undeprecated, in every dialect k is deprecated in, and in the release
+// that removed k.
 func checkSuccessor(t *testing.T, k dialect.Keyword) {
 	t.Helper()
 	if k.Successor == k.Name {
 		t.Error("Successor names the keyword itself")
 		return
 	}
-	if k.Deprecated == 0 {
-		t.Errorf("Successor %q on a keyword that is not deprecated", k.Successor)
+	if k.Deprecated == 0 && k.Removed == dialect.AnyVersion {
+		t.Errorf("Successor %q on a keyword that is neither deprecated nor removed", k.Successor)
 		return
 	}
 	s, ok := dialect.LookupAny(k.Successor)
@@ -134,6 +136,34 @@ func checkSuccessor(t *testing.T, k dialect.Keyword) {
 	}
 	if s.Deprecated&k.Deprecated != 0 {
 		t.Errorf("Successor %q is itself deprecated in %b", k.Successor, s.Deprecated&k.Deprecated)
+	}
+	if k.Removed != dialect.AnyVersion && !s.In(dialect.Suricata, k.Removed) {
+		t.Errorf("Successor %q does not exist in %v, which removed %q", k.Successor, k.Removed, k.Name)
+	}
+}
+
+// checkVersions checks that a keyword with Added or Removed belongs to one
+// dialect that has Versions, that both name releases of it, and that Added
+// comes before Removed.
+func checkVersions(t *testing.T, k dialect.Keyword) {
+	t.Helper()
+	if k.Added == dialect.AnyVersion && k.Removed == dialect.AnyVersion {
+		return
+	}
+	if k.Dialects != dialect.SetSuricata {
+		t.Errorf("Added %v / Removed %v on a keyword with Dialects %b; only a Suricata-only keyword has versions", k.Added, k.Removed, k.Dialects)
+		return
+	}
+	for _, v := range []dialect.Version{k.Added, k.Removed} {
+		if !dialect.Suricata.HasVersion(v) {
+			t.Errorf("version %v is not a Suricata release the tables describe", v)
+		}
+	}
+	if k.Added == dialect.Suricata.Versions()[0] {
+		t.Errorf("Added %v is the oldest release the tables describe; leave it unset", k.Added)
+	}
+	if k.Added != dialect.AnyVersion && k.Removed != dialect.AnyVersion && k.Added >= k.Removed {
+		t.Errorf("Added %v is not before Removed %v", k.Added, k.Removed)
 	}
 }
 

@@ -1,0 +1,6 @@
+# lint: dialect=suricata version=8.0 checks=keyword-version,keyword-deprecated
+alert ftp any any -> any any (msg:"a"; ftp.command; content:"PASS"; sid:1; rev:1;)
+# expect: keyword-version error ""ssh.protoversion" was removed in suricata 8.0; use "ssh.proto""
+alert ssh any any -> any any (msg:"b"; ssh.protoversion:2.0; sid:2; rev:1;)
+# expect: keyword-version error ""luajit" was removed in suricata 8.0; use "lua""
+alert tcp any any -> any any (msg:"c"; luajit:x.lua; sid:3; rev:1;)

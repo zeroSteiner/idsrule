@@ -29,6 +29,12 @@ func transform(name string) Keyword {
 	return Keyword{Name: name, Dialects: SetSuricata, Value: NoValue, Kind: KindNone, Role: RoleTransform, Repeatable: true}
 }
 
+// addedIn returns k as a keyword that first appeared in Suricata release v.
+func addedIn(v Version, k Keyword) Keyword {
+	k.Added = v
+	return k
+}
+
 // suricataKeywords are the keywords that exist only in Suricata, following
 // the Suricata 7 keyword index plus a few from later versions. Values with grammars of their own are KindRaw.
 var suricataKeywords = []Keyword{
@@ -38,12 +44,12 @@ var suricataKeywords = []Keyword{
 	{Name: "startswith", Dialects: SetSuricata, Value: NoValue, Kind: KindNone, Role: RoleModifier, Repeatable: true},
 	{Name: "endswith", Dialects: SetSuricata, Value: NoValue, Kind: KindNone, Role: RoleModifier, Repeatable: true},
 	{Name: "bsize", Dialects: SetSuricata, Value: Required, Kind: KindRelInt, Role: RoleBufferTest, Repeatable: true},
-	{Name: "absent", Dialects: SetSuricata, Value: Optional, Kind: KindRaw, Role: RoleBufferTest, Repeatable: true},
+	{Name: "absent", Dialects: SetSuricata, Value: Optional, Kind: KindRaw, Role: RoleBufferTest, Repeatable: true, Added: Suricata8},
 	// pcrexform takes a quoted regular expression, whose escapes are
 	// PCRE's rather than a quoted string's.
 	{Name: "pcrexform", Dialects: SetSuricata, Value: Required, Kind: KindRaw, Role: RoleTransform, Repeatable: true},
 	{Name: "xor", Dialects: SetSuricata, Value: Required, Kind: KindQuoted, Role: RoleTransform, Repeatable: true},
-	{Name: "from_base64", Dialects: SetSuricata, Value: Optional, Kind: KindRaw, Role: RoleTransform, Repeatable: true},
+	{Name: "from_base64", Dialects: SetSuricata, Value: Optional, Kind: KindRaw, Role: RoleTransform, Repeatable: true, Added: Suricata8},
 	transform("dotprefix"),
 	transform("strip_whitespace"),
 	transform("compress_whitespace"),
@@ -111,7 +117,9 @@ var suricataKeywords = []Keyword{
 	appLayer("http2.size_update", KindRaw),
 	appLayer("http2.settings", KindRaw),
 	sticky("http2.header_name", ""),
-	sticky("http2.header", ""),
+	// http2.header was experimental in Suricata 6 and is gone since 7.0;
+	// http.request_header and http.response_header took its place.
+	{Name: "http2.header", Dialects: SetSuricata, Value: NoValue, Kind: KindNone, Role: RoleStickyBuffer, Repeatable: true, Removed: Suricata7},
 
 	// Files.
 	sticky("file.data", "file_data"),
@@ -129,17 +137,17 @@ var suricataKeywords = []Keyword{
 	// DNS.
 	sticky("dns.query", ""),
 	legacySticky("dns_query", "dns.query"),
-	sticky("dns.answer.name", ""),
+	addedIn(Suricata8, sticky("dns.answer.name", "")),
 	appLayer("dns.opcode", KindRelInt),
 
 	// FTP. The ftp.* keywords are new in Suricata 8.
-	sticky("ftp.command", ""),
-	sticky("ftp.command_data", ""),
-	sticky("ftp.reply", ""),
-	sticky("ftp.completion_code", ""),
-	appLayer("ftp.dynamic_port", KindRelInt),
-	appLayer("ftp.mode", KindIdent),
-	appLayer("ftp.reply_received", KindIdent),
+	addedIn(Suricata8, sticky("ftp.command", "")),
+	addedIn(Suricata8, sticky("ftp.command_data", "")),
+	addedIn(Suricata8, sticky("ftp.reply", "")),
+	addedIn(Suricata8, sticky("ftp.completion_code", "")),
+	addedIn(Suricata8, appLayer("ftp.dynamic_port", KindRelInt)),
+	addedIn(Suricata8, appLayer("ftp.mode", KindIdent)),
+	addedIn(Suricata8, appLayer("ftp.reply_received", KindIdent)),
 	appLayer("ftpdata_command", KindIdent),
 
 	// TLS.
@@ -186,8 +194,9 @@ var suricataKeywords = []Keyword{
 	sticky("ssh.hassh.string", ""),
 	sticky("ssh.hassh.server", ""),
 	sticky("ssh.hassh.server.string", ""),
-	appLayer("ssh.protoversion", KindRaw),
-	appLayer("ssh.softwareversion", KindRaw),
+	// Deprecated in 7.0; 8.0 keeps the names only to refuse them.
+	{Name: "ssh.protoversion", Dialects: SetSuricata, Deprecated: SetSuricata, Value: Required, Kind: KindRaw, Role: RoleAppLayer, Successor: "ssh.proto", Removed: Suricata8},
+	{Name: "ssh.softwareversion", Dialects: SetSuricata, Deprecated: SetSuricata, Value: Required, Kind: KindRaw, Role: RoleAppLayer, Successor: "ssh.software", Removed: Suricata8},
 
 	// SMB.
 	sticky("smb.named_pipe", ""),
@@ -205,7 +214,6 @@ var suricataKeywords = []Keyword{
 	appLayer("krb5_msg_type", KindRaw),
 	appLayer("krb5_err_code", KindRaw),
 	appLayer("krb5.ticket_encryption", KindRaw),
-	{Name: "krb5.weak_encryption", Dialects: SetSuricata, Value: NoValue, Kind: KindNone, Role: RoleAppLayer},
 
 	// DCE/RPC.
 	{Name: "dcerpc.iface", Dialects: SetSuricata, Value: Required, Kind: KindRaw, Role: RoleAppLayer, Replaces: "dce_iface"},
@@ -256,14 +264,14 @@ var suricataKeywords = []Keyword{
 	appLayer("quic.version", KindRaw),
 
 	// SMTP.
-	sticky("smtp.helo", ""),
-	sticky("smtp.mail_from", ""),
-	sticky("smtp.rcpt_to", ""),
+	addedIn(Suricata8, sticky("smtp.helo", "")),
+	addedIn(Suricata8, sticky("smtp.mail_from", "")),
+	addedIn(Suricata8, sticky("smtp.rcpt_to", "")),
 
 	// MQTT.
 	sticky("mqtt.connect.clientid", ""),
 	sticky("mqtt.connect.password", ""),
-	sticky("mqtt.connect.protocol_string", ""),
+	addedIn(Suricata8, sticky("mqtt.connect.protocol_string", "")),
 	sticky("mqtt.connect.username", ""),
 	sticky("mqtt.connect.willmessage", ""),
 	sticky("mqtt.connect.willtopic", ""),
@@ -273,7 +281,8 @@ var suricataKeywords = []Keyword{
 	sticky("mqtt.unsubscribe.topic", ""),
 	appLayer("mqtt.connect.flags", KindCSV),
 	appLayer("mqtt.connack.session_present", KindIdent),
-	appLayer("mqtt.connack.reason_code", KindRaw),
+	// 7.0 registers this alias of mqtt.reason_code; 8.0 does not.
+	{Name: "mqtt.connack.return_code", Dialects: SetSuricata, Value: Required, Kind: KindRaw, Role: RoleAppLayer, Successor: "mqtt.reason_code", Removed: Suricata8},
 	appLayer("mqtt.qos", KindRaw),
 	appLayer("mqtt.type", KindRaw),
 	appLayer("mqtt.flags", KindCSV),
@@ -292,7 +301,6 @@ var suricataKeywords = []Keyword{
 	// Packet headers.
 	sticky("tcp.hdr", ""),
 	sticky("udp.hdr", ""),
-	sticky("ip.hdr", ""),
 	sticky("ipv4.hdr", ""),
 	sticky("ipv6.hdr", ""),
 	sticky("icmpv4.hdr", ""),
@@ -312,10 +320,10 @@ var suricataKeywords = []Keyword{
 	{Name: "xbits", Dialects: SetSuricata, Value: Required, Kind: KindRaw, Role: RoleFlow, Repeatable: true},
 	{Name: "hostbits", Dialects: SetSuricata, Value: Required, Kind: KindRaw, Role: RoleFlow, Repeatable: true},
 	{Name: "flow.age", Dialects: SetSuricata, Value: Required, Kind: KindRelInt, Role: RoleFlow},
-	{Name: "flow.pkts_toserver", Dialects: SetSuricata, Value: Required, Kind: KindRelInt, Role: RoleFlow},
-	{Name: "flow.pkts_toclient", Dialects: SetSuricata, Value: Required, Kind: KindRelInt, Role: RoleFlow},
-	{Name: "flow.bytes_toserver", Dialects: SetSuricata, Value: Required, Kind: KindRelInt, Role: RoleFlow},
-	{Name: "flow.bytes_toclient", Dialects: SetSuricata, Value: Required, Kind: KindRelInt, Role: RoleFlow},
+	{Name: "flow.pkts_toserver", Dialects: SetSuricata, Value: Required, Kind: KindRelInt, Role: RoleFlow, Added: Suricata8},
+	{Name: "flow.pkts_toclient", Dialects: SetSuricata, Value: Required, Kind: KindRelInt, Role: RoleFlow, Added: Suricata8},
+	{Name: "flow.bytes_toserver", Dialects: SetSuricata, Value: Required, Kind: KindRelInt, Role: RoleFlow, Added: Suricata8},
+	{Name: "flow.bytes_toclient", Dialects: SetSuricata, Value: Required, Kind: KindRelInt, Role: RoleFlow, Added: Suricata8},
 	{Name: "dataset", Dialects: SetSuricata, Value: Required, Kind: KindRaw, Role: RolePayload, Repeatable: true},
 	{Name: "datarep", Dialects: SetSuricata, Value: Required, Kind: KindRaw, Role: RolePayload, Repeatable: true},
 
@@ -327,5 +335,5 @@ var suricataKeywords = []Keyword{
 	{Name: "requires", Dialects: SetSuricata, Value: Required, Kind: KindRaw, Role: RoleOther},
 	{Name: "config", Dialects: SetSuricata, Value: Required, Kind: KindRaw, Role: RoleOther},
 	{Name: "lua", Dialects: SetSuricata, Value: Required, Kind: KindRaw, Role: RoleOther, Repeatable: true},
-	{Name: "luajit", Dialects: SetSuricata, Deprecated: SetSuricata, Value: Required, Kind: KindRaw, Role: RoleOther, Repeatable: true, Successor: "lua"},
+	{Name: "luajit", Dialects: SetSuricata, Deprecated: SetSuricata, Value: Required, Kind: KindRaw, Role: RoleOther, Repeatable: true, Successor: "lua", Removed: Suricata8},
 }

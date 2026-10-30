@@ -71,7 +71,9 @@ func Check(f *File, opts Options) []Diagnostic {
 }
 
 // runChecks runs the checks on f with validated options: the dialect is
-// opts.Dialect or, when that is DialectUnknown, detected from f.Path. The
+// opts.Dialect or, when that is DialectUnknown, detected from f.Path, and
+// the version is opts.Version when it is a release of that dialect and
+// VersionAny otherwise. The
 // SID index, if any, is brought up to date with f before the checks run,
 // whatever the selection: its entries for f.Path are replaced by the sids
 // f declares.
@@ -80,12 +82,17 @@ func runChecks(f *File, opts Options) []Diagnostic {
 	if d == DialectUnknown {
 		d = DialectFromFilename(f.Path)
 	}
+	v := opts.Version
+	if !d.HasVersion(v) {
+		v = VersionAny
+	}
 	ctx := &check.Context{
 		File:    f.Path,
 		Src:     f.Src,
 		Tree:    f,
 		Lines:   f.Lines(),
 		Dialect: d,
+		Version: v,
 		Policy:  opts.Policy,
 		SIDs:    opts.SIDs,
 	}

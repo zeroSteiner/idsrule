@@ -8,8 +8,50 @@ Before v1 the API may change in any minor release.
 
 ## [Unreleased]
 
+### Breaking changes
+
+- The new `keyword-version` check (error) is on by default. Even with no
+  version set it reports, as an error, a keyword that no Suricata release
+  the tables describe accepts: `http2.header`, gone since Suricata 7.0.
+  It also warns about `ssh.protoversion`, `ssh.softwareversion`, `luajit`
+  and `mqtt.connack.return_code`, which Suricata 8.0 no longer accepts.
+- The keywords `ip.hdr`, `krb5.weak_encryption` and
+  `mqtt.connack.reason_code` are gone from the Suricata table: no Suricata
+  release has them, so rules that use them are now `keyword-unknown`.
+  `krb5.weak_encryption` is an app-layer event
+  (`app-layer-event:krb5.weak_encryption`), and the MQTT alias is
+  `mqtt.connack.return_code`.
+- `ssh.protoversion` and `ssh.softwareversion` are deprecated in Suricata
+  (successors `ssh.proto` and `ssh.software`), so `keyword-deprecated`
+  reports them when the version is 7.0.
+- `dialect.Keyword.Successor` may now be set on a removed keyword as well
+  as on a deprecated one.
+
 ### Added
 
+- Suricata versions. `dialect.Version` names a release of a dialect's
+  engine: `dialect.Suricata7`, `dialect.Suricata8`, `dialect.NewVersion`
+  and `dialect.ParseVersion` (`"8"`, `"8.0"`, `"any"`). `AnyVersion`, the
+  zero value, holds rules to what any release accepts.
+  - `Dialect.Versions` and `Dialect.HasVersion` list a dialect's releases.
+  - `Options.Version` (with the facade's `Version`, `VersionAny`,
+    `VersionSuricata7`, `VersionSuricata8` and `ParseVersion`) and
+    `check.Context.Version` choose the release. `Options.Validate` rejects
+    a release that the dialect, or with `DialectUnknown` every dialect,
+    lacks. A file whose detected dialect lacks the release is checked as
+    `VersionAny`.
+  - Keyword rows record the release that added them (`Keyword.Added`) and
+    the one that removed them (`Keyword.Removed`), and `Keyword.In` says
+    whether a release has a keyword. Eighteen keywords are marked as added
+    in 8.0: `absent`, `from_base64`, `dns.answer.name`, the FTP keywords,
+    `smtp.helo`, `smtp.mail_from`, `smtp.rcpt_to`,
+    `mqtt.connect.protocol_string`, and the `flow.pkts_*` and
+    `flow.bytes_*` counters.
+- `keyword-version` check (error): a keyword that the release of the
+  dialect being linted does not have, either because it came later
+  (`"ftp.command" requires suricata 8.0 or later`) or because it was
+  removed (`"luajit" was removed in suricata 8.0; use "lua"`). With no
+  release set, a keyword that a later release removed is a warning.
 - `content-depth-too-short` check (error): a `depth` or `within` smaller
   than the content it modifies, measured on the decoded pattern (escapes
   and `|hex|` bytes count once each), so it can never match; Suricata
