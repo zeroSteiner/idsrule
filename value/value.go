@@ -82,6 +82,8 @@ func Validate(kind dialect.ValueKind, s string) error {
 		_, err = ParseFastPattern(s)
 	case dialect.KindIsDataAt:
 		_, err = ParseIsDataAt(s)
+	case dialect.KindDirection:
+		_, err = ParseDirection(s)
 	case dialect.KindCSV:
 		_, err = ParseCSV(s)
 	case dialect.KindRaw:

@@ -29,6 +29,13 @@ func transform(name string) Keyword {
 	return Keyword{Name: name, Dialects: SetSuricata, Value: NoValue, Kind: KindNone, Role: RoleTransform, Repeatable: true}
 }
 
+// directional returns the sticky buffer k as one that Suricata 8 lets name
+// a direction: file.data:to_client.
+func directional(k Keyword) Keyword {
+	k.Value, k.Kind = Optional, KindDirection
+	return k
+}
+
 // addedIn returns k as a keyword that first appeared in Suricata release v.
 func addedIn(v Version, k Keyword) Keyword {
 	k.Added = v
@@ -77,32 +84,32 @@ var suricataKeywords = []Keyword{
 	sticky("http.user_agent", ""),
 	sticky("http.host", ""),
 	sticky("http.host.raw", ""),
-	sticky("http.accept", ""),
-	sticky("http.accept_lang", ""),
-	sticky("http.accept_enc", ""),
-	sticky("http.referer", ""),
-	sticky("http.connection", ""),
-	sticky("http.content_type", ""),
-	sticky("http.content_len", ""),
+	directional(sticky("http.accept", "")),
+	directional(sticky("http.accept_lang", "")),
+	directional(sticky("http.accept_enc", "")),
+	directional(sticky("http.referer", "")),
+	directional(sticky("http.connection", "")),
+	directional(sticky("http.content_type", "")),
+	directional(sticky("http.content_len", "")),
 	sticky("http.protocol", ""),
 	sticky("http.start", ""),
 	sticky("http.response_line", ""),
 	sticky("http.response_body", ""),
 	sticky("http.stat_code", "http_stat_code"),
 	sticky("http.stat_msg", "http_stat_msg"),
-	sticky("http.server", ""),
-	sticky("http.location", ""),
+	directional(sticky("http.server", "")),
+	directional(sticky("http.location", "")),
 	legacyModifier("http_server_body", "http.response_body"),
 	legacyModifier("http_user_agent", "http.user_agent"),
 	legacyModifier("http_host", "http.host"),
 	legacyModifier("http_raw_host", "http.host.raw"),
-	legacySticky("http_accept", "http.accept"),
-	legacySticky("http_accept_lang", "http.accept_lang"),
-	legacySticky("http_accept_enc", "http.accept_enc"),
-	legacySticky("http_referer", "http.referer"),
-	legacySticky("http_connection", "http.connection"),
-	legacySticky("http_content_type", "http.content_type"),
-	legacySticky("http_content_len", "http.content_len"),
+	directional(legacySticky("http_accept", "http.accept")),
+	directional(legacySticky("http_accept_lang", "http.accept_lang")),
+	directional(legacySticky("http_accept_enc", "http.accept_enc")),
+	directional(legacySticky("http_referer", "http.referer")),
+	directional(legacySticky("http_connection", "http.connection")),
+	directional(legacySticky("http_content_type", "http.content_type")),
+	directional(legacySticky("http_content_len", "http.content_len")),
 	legacySticky("http_protocol", "http.protocol"),
 	legacySticky("http_start", "http.start"),
 	legacySticky("http_request_line", "http.request_line"),
@@ -122,9 +129,9 @@ var suricataKeywords = []Keyword{
 	{Name: "http2.header", Dialects: SetSuricata, Value: NoValue, Kind: KindNone, Role: RoleStickyBuffer, Repeatable: true, Removed: Suricata7},
 
 	// Files.
-	sticky("file.data", "file_data"),
-	sticky("file.name", ""),
-	sticky("file.magic", ""),
+	directional(sticky("file.data", "file_data")),
+	directional(sticky("file.name", "")),
+	directional(sticky("file.magic", "")),
 	{Name: "filename", Dialects: SetSuricata, Value: Required, Kind: KindRaw, Role: RolePayload, Repeatable: true},
 	{Name: "fileext", Dialects: SetSuricata, Value: Required, Kind: KindRaw, Role: RolePayload, Repeatable: true},
 	{Name: "filemagic", Dialects: SetSuricata, Value: Required, Kind: KindRaw, Role: RolePayload, Repeatable: true},
@@ -132,7 +139,7 @@ var suricataKeywords = []Keyword{
 	{Name: "filemd5", Dialects: SetSuricata, Value: Required, Kind: KindRaw, Role: RolePayload},
 	{Name: "filesha1", Dialects: SetSuricata, Value: Required, Kind: KindRaw, Role: RolePayload},
 	{Name: "filesha256", Dialects: SetSuricata, Value: Required, Kind: KindRaw, Role: RolePayload},
-	{Name: "filesize", Dialects: SetSuricata, Value: Required, Kind: KindRelInt, Role: RolePayload},
+	{Name: "filesize", Dialects: SetSuricata, Value: Required, Kind: KindRelInt, Role: RolePayload, Directional: true},
 
 	// DNS.
 	sticky("dns.query", ""),
@@ -261,7 +268,7 @@ var suricataKeywords = []Keyword{
 	sticky("quic.cyu.string", ""),
 	sticky("quic.sni", ""),
 	sticky("quic.ua", ""),
-	appLayer("quic.version", KindRaw),
+	sticky("quic.version", ""),
 
 	// SMTP.
 	addedIn(Suricata8, sticky("smtp.helo", "")),
@@ -297,6 +304,9 @@ var suricataKeywords = []Keyword{
 	// app-layer-protocol takes an optional '!' before the name.
 	{Name: "app-layer-protocol", Dialects: SetSuricata, Value: Required, Kind: KindRaw, Role: RoleAppLayer},
 	{Name: "app-layer-event", Dialects: SetSuricata, Value: Required, Kind: KindIdent, Role: RoleAppLayer},
+
+	// Frames: frame selects the frame named by its value as the buffer.
+	{Name: "frame", Dialects: SetSuricata, Value: Required, Kind: KindIdent, Role: RoleStickyBuffer, Repeatable: true},
 
 	// Packet headers.
 	sticky("tcp.hdr", ""),

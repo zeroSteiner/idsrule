@@ -36,7 +36,9 @@ var commonKeywords = []Keyword{
 	{Name: "byte_math", Dialects: Both, Value: Required, Kind: KindRaw, Role: RolePayload, Repeatable: true},
 	{Name: "base64_decode", Dialects: Both, Value: Optional, Kind: KindBase64Decode, Role: RolePayload, Repeatable: true},
 	{Name: "base64_data", Dialects: Both, Value: NoValue, Kind: KindNone, Role: RoleStickyBuffer, Repeatable: true},
-	{Name: "file_data", Dialects: Both, Value: NoValue, Kind: KindNone, Role: RoleStickyBuffer, Repeatable: true},
+	// file_data takes an optional value in both engines, mime in Snort 2.9
+	// and a direction in Suricata 8, so the value is not decoded.
+	{Name: "file_data", Dialects: Both, Value: Optional, Kind: KindRaw, Role: RoleStickyBuffer, Repeatable: true},
 	{Name: "pkt_data", Dialects: Both, Value: NoValue, Kind: KindNone, Role: RoleStickyBuffer, Repeatable: true},
 	{Name: "urilen", Dialects: Both, Value: Required, Kind: KindUrilen, Role: RolePayload},
 	{Name: "dsize", Dialects: Both, Value: Required, Kind: KindRelInt, Role: RoleNonPayload},

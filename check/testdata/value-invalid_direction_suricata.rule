@@ -1,0 +1,18 @@
+# lint: dialect=suricata checks=value-invalid,sticky-buffer-empty,modifier-without-content
+# Suricata 8: a sticky buffer may name a direction, filesize may start
+# with one, and frame names the frame it selects.
+alert http any any -> any any (msg:"a"; http.content_type:to_server; content:"json"; http.content_type: to_client; content:"xml"; sid:1; rev:1;)
+alert http any any -> any any (msg:"b"; file.data:to_client; content:"x"; sid:2; rev:1;)
+alert http any any -> any any (msg:"c"; filesize:to_server,>100; sid:3; rev:1;)
+alert http any any -> any any (msg:"d"; filesize:to_client , 10kb; sid:4; rev:1;)
+alert ssh any any -> any any (msg:"e"; frame:ssh.record.hdr; content:"|15|"; endswith; bsize:6; sid:5; rev:1;)
+alert quic any any -> any any (msg:"f"; quic.version; content:"Q046"; sid:6; rev:1;)
+alert http any any -> any any (msg:"g"; file_data; content:"x"; sid:7; rev:1;)
+# expect: value-invalid error "file.data: expected "to_client" or "to_server""
+alert http any any -> any any (msg:"h"; file.data:to_both; content:"x"; sid:8; rev:1;)
+# expect: value-invalid error "filesize: expected a number"
+alert http any any -> any any (msg:"i"; filesize:to_server,x; sid:9; rev:1;)
+# expect: value-invalid error "filesize: expected a number"
+alert http any any -> any any (msg:"j"; filesize:to_client; sid:10; rev:1;)
+# expect: value-invalid error "frame requires a value"
+alert ssh any any -> any any (msg:"k"; frame; content:"x"; sid:11; rev:1;)

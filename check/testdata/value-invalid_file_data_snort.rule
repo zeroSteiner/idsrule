@@ -1,0 +1,3 @@
+# lint: dialect=snort2
+# Snort 2.9 reads file_data:mime.
+alert tcp any any -> any any (msg:"a"; file_data:mime; content:"x"; sid:1; rev:1;)

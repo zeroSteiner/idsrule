@@ -64,6 +64,7 @@ func TestValidate(t *testing.T) {
 		{dialect.KindFastPattern, []string{"", "only", "1,2"}, []string{"x", "1"}},
 		{dialect.KindIsDataAt, []string{"1", "!1,relative"}, []string{"", "1,x"}},
 		{dialect.KindCSV, []string{"a", "a, b"}, []string{"", "a,,b"}},
+		{dialect.KindDirection, []string{"", "to_client", "to_server"}, []string{"to_both", "TO_CLIENT", "to_client,x"}},
 		{dialect.KindRaw, []string{"", "anything at all", ",,"}, nil},
 	}
 	covered := make(map[dialect.ValueKind]bool)

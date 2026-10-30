@@ -53,11 +53,27 @@ func checkValue(ctx *Context, o *cst.Option, k dialect.Keyword) {
 	if logical == "" {
 		return
 	}
-	err := value.Validate(k.Kind, logical)
+	if k.Kind == dialect.KindDirection && ctx.before(dialect.Suricata8) {
+		ctx.Report(o.ValueSpan(), "%s takes no value in %s %s; a direction requires %s", k.Name, ctx.Dialect, ctx.Version, dialect.Suricata8)
+		return
+	}
+	// text is the value after a leading direction, at offset off in
+	// logical.
+	text, off := logical, 0
+	if k.Directional {
+		if _, rest, n, ok := value.CutDirection(logical); ok {
+			if ctx.before(dialect.Suricata8) {
+				ctx.Report(o.ValueSpan(), "%s: a direction requires %s %s or later", k.Name, ctx.Dialect, dialect.Suricata8)
+				return
+			}
+			text, off = rest, n
+		}
+	}
+	err := value.Validate(k.Kind, text)
 	var ve *value.Error
 	switch {
 	case errors.As(err, &ve):
-		d := ctx.Report(ctx.ValueSpanAt(o, ve.Off), "%s: %s", k.Name, ve.Msg)
+		d := ctx.Report(ctx.ValueSpanAt(o, off+ve.Off), "%s: %s", k.Name, ve.Msg)
 		if k.Kind == dialect.KindMetadata && strings.Contains(ve.Msg, "empty") {
 			// Suricata skips an empty metadata entry rather than
 			// rejecting the rule.

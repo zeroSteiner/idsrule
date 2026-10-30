@@ -83,6 +83,9 @@ const (
 	KindIsDataAt
 	// KindCSV is a comma-separated list of non-empty items.
 	KindCSV
+	// KindDirection is the direction a Suricata 8 sticky buffer may name,
+	// to_client or to_server: file.data:to_client.
+	KindDirection
 	// KindRaw is a value whose grammar is not decoded: anything is accepted.
 	KindRaw
 )
@@ -127,6 +130,8 @@ func (k ValueKind) String() string {
 		return "isdataat"
 	case KindCSV:
 		return "csv"
+	case KindDirection:
+		return "direction"
 	case KindRaw:
 		return "raw"
 	}
@@ -148,7 +153,8 @@ const (
 	// RoleModifier modifies the preceding content: nocase, depth, http_uri.
 	RoleModifier
 	// RoleStickyBuffer selects the buffer the following matches apply to:
-	// file_data, http.uri.
+	// file_data, http.uri. Most take no value; frame names the frame, and
+	// in Suricata 8 some may name a direction (file.data:to_client).
 	RoleStickyBuffer
 	// RoleTransform rewrites the bytes of the active sticky buffer before
 	// the matches that follow: url_decode, to_lowercase, xor. Suricata
@@ -223,6 +229,11 @@ type Keyword struct {
 	// Repeatable reports whether the keyword may appear more than once in
 	// one rule.
 	Repeatable bool
+	// Directional reports whether the value may begin with a direction,
+	// to_client or to_server, and a ',' before the value proper:
+	// filesize:to_server,>100. Suricata 8 reads it; the value after the
+	// direction is of Kind.
+	Directional bool
 	// Replaces names the equivalent keyword in the other dialect, if there
 	// is one. It is set only on a keyword that exists in one dialect:
 	// "http.uri" (Suricata) replaces "http_uri" (Snort 2), while

@@ -26,6 +26,21 @@ Before v1 the API may change in any minor release.
   reports them when the version is 7.0.
 - `dialect.Keyword.Successor` may now be set on a removed keyword as well
   as on a deprecated one.
+- A sticky buffer may take a value: the table invariant that a
+  `RoleStickyBuffer` row takes no value is gone. Code that assumed it
+  must handle `frame` (a required value) and the Suricata 8 directions.
+- `dialect.KindRaw` moved up by one: `dialect.KindDirection` is
+  declared before it. Code that stored `ValueKind` numbers must re-map
+  them.
+- `file_data` takes an optional, undecoded value (Snort 2.9's `mime`,
+  Suricata 8's direction). `file.data`, `file.name`, `file.magic`, the
+  `http.accept*`, `http.connection`, `http.content_len`,
+  `http.content_type`, `http.location`, `http.referer` and `http.server`
+  buffers, and their legacy `http_*` forms, take an optional
+  `KindDirection`.
+- `quic.version` is a sticky buffer, as in both Suricata 7 and 8. It no
+  longer takes a value, so `quic.version:1` is now a `value-invalid`
+  error.
 
 ### Added
 
@@ -52,6 +67,16 @@ Before v1 the API may change in any minor release.
   (`"ftp.command" requires suricata 8.0 or later`) or because it was
   removed (`"luajit" was removed in suricata 8.0; use "lua"`). With no
   release set, a keyword that a later release removed is a warning.
+- Suricata 8 directions. `dialect.KindDirection` (`to_client` or
+  `to_server`) is the optional value of the sticky buffers that may name
+  one (`file.data:to_client`). `dialect.Keyword.Directional` marks a
+  keyword whose value may start with a direction and a `,`
+  (`filesize:to_server,>100`). `value.ParseDirection` and
+  `value.CutDirection` decode them. `value-invalid` reports a direction
+  when the version is 7.0.
+- `frame` (Suricata 7 and later): the sticky buffer that selects a
+  frame, `frame:ssh.record.hdr`. It was unknown, so a `bsize` or
+  `endswith` after it was also a `modifier-without-content` error.
 - `content-depth-too-short` check (error): a `depth` or `within` smaller
   than the content it modifies, measured on the decoded pattern (escapes
   and `|hex|` bytes count once each), so it can never match; Suricata

@@ -55,8 +55,9 @@ func TestValueKindString(t *testing.T) {
 		{dialect.KindFastPattern, "fast_pattern", true},
 		{dialect.KindIsDataAt, "isdataat", true},
 		{dialect.KindCSV, "csv", true},
+		{dialect.KindDirection, "direction", true},
 		{dialect.KindRaw, "raw", true},
-		{dialect.KindRaw + 1, "ValueKind(19)", false},
+		{dialect.KindRaw + 1, "ValueKind(20)", false},
 		{dialect.ValueKind(255), "ValueKind(255)", false},
 	}
 	seen := make(map[string]bool)

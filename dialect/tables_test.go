@@ -49,13 +49,14 @@ func TestTableInvariants(t *testing.T) {
 					t.Errorf("Value is Optional but Kind %v rejects an empty value: %v", k.Kind, err)
 				}
 			}
-			if k.Role == dialect.RoleStickyBuffer {
-				if k.Value != dialect.NoValue {
-					t.Errorf("sticky buffer takes a value (%v)", k.Value)
-				}
-				if !k.Repeatable {
-					t.Error("sticky buffer is not Repeatable")
-				}
+			if k.Role == dialect.RoleStickyBuffer && !k.Repeatable {
+				t.Error("sticky buffer is not Repeatable")
+			}
+			if k.Kind == dialect.KindDirection && (k.Role != dialect.RoleStickyBuffer || k.Value != dialect.Optional || k.Dialects != dialect.SetSuricata) {
+				t.Errorf("KindDirection on a %v keyword with Value %v and Dialects %b; it is for the optional value of a Suricata sticky buffer", k.Role, k.Value, k.Dialects)
+			}
+			if k.Directional && (k.Value != dialect.Required || k.Dialects != dialect.SetSuricata || k.Kind == dialect.KindDirection) {
+				t.Errorf("Directional on a keyword with Value %v, Kind %v and Dialects %b; it is for a Suricata keyword whose required value may start with a direction", k.Value, k.Kind, k.Dialects)
 			}
 			if k.Role == dialect.RoleTransform || k.Role == dialect.RoleBufferTest {
 				if k.Dialects != dialect.SetSuricata {
@@ -190,8 +191,10 @@ func TestTableContents(t *testing.T) {
 		"isdataat":          {dialect.Both, 0, dialect.Required, dialect.KindIsDataAt, dialect.RolePayload, true, "", ""},
 		"byte_test":         {dialect.Both, 0, dialect.Required, dialect.KindRaw, dialect.RolePayload, true, "", ""},
 		"base64_decode":     {dialect.Both, 0, dialect.Optional, dialect.KindBase64Decode, dialect.RolePayload, true, "", ""},
-		"file_data":         {dialect.Both, 0, dialect.NoValue, dialect.KindNone, dialect.RoleStickyBuffer, true, "", ""},
-		"file.data":         {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RoleStickyBuffer, true, "file_data", ""},
+		"file_data":         {dialect.Both, 0, dialect.Optional, dialect.KindRaw, dialect.RoleStickyBuffer, true, "", ""},
+		"file.data":         {dialect.SetSuricata, 0, dialect.Optional, dialect.KindDirection, dialect.RoleStickyBuffer, true, "file_data", ""},
+		"frame":             {dialect.SetSuricata, 0, dialect.Required, dialect.KindIdent, dialect.RoleStickyBuffer, true, "", ""},
+		"quic.version":      {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RoleStickyBuffer, true, "", ""},
 		"urilen":            {dialect.Both, 0, dialect.Required, dialect.KindUrilen, dialect.RolePayload, false, "", ""},
 		"dsize":             {dialect.Both, 0, dialect.Required, dialect.KindRelInt, dialect.RoleNonPayload, false, "", ""},
 		"flow":              {dialect.Both, 0, dialect.Required, dialect.KindFlow, dialect.RoleFlow, false, "", ""},
@@ -205,7 +208,7 @@ func TestTableContents(t *testing.T) {
 		"http.uri":          {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RoleStickyBuffer, true, "http_uri", ""},
 		"http.request_body": {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RoleStickyBuffer, true, "http_client_body", ""},
 		"http.user_agent":   {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RoleStickyBuffer, true, "", ""},
-		"http_accept":       {dialect.SetSuricata, dialect.SetSuricata, dialect.NoValue, dialect.KindNone, dialect.RoleStickyBuffer, true, "", "http.accept"},
+		"http_accept":       {dialect.SetSuricata, dialect.SetSuricata, dialect.Optional, dialect.KindDirection, dialect.RoleStickyBuffer, true, "", "http.accept"},
 		"dce_iface":         {dialect.Both, dialect.SetSuricata, dialect.Required, dialect.KindRaw, dialect.RoleAppLayer, false, "", "dcerpc.iface"},
 		"dcerpc.iface":      {dialect.SetSuricata, 0, dialect.Required, dialect.KindRaw, dialect.RoleAppLayer, false, "dce_iface", ""},
 		"dcerpc.stub_data":  {dialect.SetSuricata, 0, dialect.NoValue, dialect.KindNone, dialect.RoleStickyBuffer, true, "dce_stub_data", ""},

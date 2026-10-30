@@ -38,6 +38,7 @@ A row looks like this:
 | `Kind` | The grammar of the value, decoded by the `value` package: `KindUint`, `KindContent`, `KindFlow` and so on. `KindNone` exactly when `Value` is `NoValue`. `KindRaw` accepts any value; use it for a value whose grammar is not decoded. | `value-invalid`, `value-unescaped-quote`, `content-snort3-modifiers` |
 | `Role` | What the keyword does: `RoleMeta`, `RolePayload`, `RoleModifier`, `RoleStickyBuffer`, `RoleTransform`, `RoleBufferTest`, `RoleFlow`, `RoleNonPayload`, `RolePostDetect`, `RoleAppLayer` or `RoleOther`. | `modifier-without-content`, `sticky-buffer-empty` |
 | `Repeatable` | Whether the keyword may appear more than once in one rule. | `option-duplicate` |
+| `Directional` | Whether the value may start with a Suricata 8 direction, `to_client` or `to_server`, and a `,` (`filesize:to_server,>100`). The rest of the value is of `Kind`. A sticky buffer whose whole value is a direction (`file.data:to_client`) uses `Value: Optional, Kind: KindDirection` instead. | `value-invalid` |
 | `Replaces` | The equivalent keyword in the other dialect, set only on a row that exists in a single dialect: `http.uri` (Suricata) replaces `http_uri` (Snort 2). Empty when the other dialect has no equivalent. | `keyword-wrong-dialect`, which then says `use "http_uri"` |
 | `Successor` | The keyword in the same dialect that supersedes this one, set only on a deprecated row: `http.uri` for `http_uri` in Suricata. Empty when nothing replaces it one for one. | `keyword-deprecated`, which then says `use "http.uri"` |
 
@@ -86,7 +87,10 @@ rules:
   exactly when `Kind` is `KindNone`.
 - A row whose `Value` is `Optional` has a `Kind` that accepts the empty
   value.
-- A `RoleStickyBuffer` row takes no value and is `Repeatable`.
+- A `RoleStickyBuffer` row is `Repeatable`.
+- `KindDirection` is only the `Optional` value of a Suricata-only sticky
+  buffer, and `Directional` is only set on a Suricata-only row whose
+  value is `Required` and not a `KindDirection`.
 - A `RoleTransform` or `RoleBufferTest` row exists only in Suricata and is
   `Repeatable`, and a buffer test takes a value.
 - `Replaces` is set only on a single-dialect row, does not name the row
