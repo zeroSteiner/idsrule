@@ -435,6 +435,26 @@ dialect (`*.snort.rule` or `*.suricata.rule`). `TestCorpusLint` pins the
 number of findings the reference corpus produces per check, so another
 corpus will fail it while still exercising everything else.
 
+The reference corpus is the rule feed of
+[vulncheck-oss/initial-access-community](https://github.com/vulncheck-oss/initial-access-community),
+which keeps each rule file in a directory of its own
+(`feed/<cve>/<cve>.suricata.rule`). The corpus tests read only the files
+directly inside `IDSRULE_CORPUS`, so clone the rule files alone and link
+them into one directory. `--filter=blob:none` and the sparse checkout
+fetch the contents of the `*.rule` files and of nothing else, and their
+names are unique across the feed, so none overwrites another:
+
+```sh
+git clone --depth 1 --filter=blob:none --no-checkout https://github.com/vulncheck-oss/initial-access-community
+cd initial-access-community
+git sparse-checkout set --no-cone '*.rule'
+git checkout
+mkdir -p ../idsrule-corpus
+for f in feed/*/*.rule; do ln -s "$PWD/$f" ../idsrule-corpus/; done
+cd ..
+IDSRULE_CORPUS=$PWD/idsrule-corpus go test -race ./...
+```
+
 The lexer and the parser have fuzz targets, `FuzzLex` and `FuzzParse`,
 seeded with their test inputs and, when `IDSRULE_CORPUS` is set, with every
 corpus file:
