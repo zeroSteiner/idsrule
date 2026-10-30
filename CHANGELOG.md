@@ -23,6 +23,15 @@ Before v1 the API may change in any minor release.
   the sticky buffers `ftp.command`, `ftp.command_data`, `ftp.reply` and
   `ftp.completion_code`, and `ftp.dynamic_port`, `ftp.mode` and
   `ftp.reply_received`, which take a value.
+- `value-invalid` accepts the integer syntax Suricata 8 reads for its
+  integer keywords (`dsize`, `bsize`, `filesize`, `urilen`, `itype`,
+  `flow.age` and the like): hex numbers (`0x1f`), size units (`10kb`,
+  `3MiB`), negated ranges (`!1-6`) and bitmask tests (`&0xc0=0x80`,
+  `&0x40!=0`). It reports a bitmask test whose value has bits outside its
+  mask, which Suricata rejects as never matching. `value.RelInt` gains the
+  operators `!-`, `!<>`, `&=` and `&!=`. Snort 2.9 reads none of these
+  forms, and the keywords both dialects share now accept them in Snort 2.9
+  rules too.
 
 ## [0.1.0] - 2026-10-11
 

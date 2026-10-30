@@ -114,6 +114,49 @@ func TestParseRelInt(t *testing.T) {
 		{"-5", value.RelInt{}, 0},
 		{"99999999999999999999", value.RelInt{}, 0},
 		{"1<>99999999999999999999", value.RelInt{}, 3},
+		// Suricata 8: hex numbers and size units.
+		{"0x10", value.RelInt{A: 16}, noErr},
+		{"0xfF", value.RelInt{A: 255}, noErr},
+		{">=0x10", value.RelInt{Op: ">=", A: 16}, noErr},
+		{"0x10-0x20", value.RelInt{Op: "-", A: 16, B: 32}, noErr},
+		{"0x7fffffffffffffff", value.RelInt{A: 1<<63 - 1}, noErr},
+		{"0x8000000000000000", value.RelInt{}, 0},
+		{"0X10", value.RelInt{}, 1},
+		{"0x", value.RelInt{}, 1},
+		{"0xg", value.RelInt{}, 1},
+		{"10kb", value.RelInt{A: 10 << 10}, noErr},
+		{"1KiB", value.RelInt{A: 1 << 10}, noErr},
+		{">10MB", value.RelInt{Op: ">", A: 10 << 20}, noErr},
+		{"2mib", value.RelInt{A: 2 << 20}, noErr},
+		{"1Gb", value.RelInt{A: 1 << 30}, noErr},
+		{"3GiB", value.RelInt{A: 3 << 30}, noErr},
+		{"0kb", value.RelInt{}, noErr},
+		{"1kb<>2kb", value.RelInt{Op: "<>", A: 1 << 10, B: 2 << 10}, noErr},
+		{"9999999999gb", value.RelInt{}, 0},
+		{"10 kb", value.RelInt{}, 3},
+		{"10k", value.RelInt{}, 2},
+		{"10kbx", value.RelInt{}, 4},
+		{"0x10kb", value.RelInt{}, 4},
+		// Suricata 8: negated ranges.
+		{"!5-10", value.RelInt{Op: "!-", A: 5, B: 10}, noErr},
+		{"!5<>10", value.RelInt{Op: "!<>", A: 5, B: 10}, noErr},
+		{"! 5 - 10", value.RelInt{Op: "!-", A: 5, B: 10}, noErr},
+		{"!10-5", value.RelInt{}, 4},
+		{"!=5-10", value.RelInt{}, 3},
+		{"<5-10", value.RelInt{}, 2},
+		// Suricata 8: bitmask tests.
+		{"&0xc0=0x80", value.RelInt{Op: "&=", A: 0xc0, B: 0x80}, noErr},
+		{"&0x40!=0", value.RelInt{Op: "&!=", A: 0x40}, noErr},
+		{" & 0xc0 = 0x80 ", value.RelInt{Op: "&=", A: 0xc0, B: 0x80}, noErr},
+		{"&12!=4", value.RelInt{Op: "&!=", A: 12, B: 4}, noErr},
+		{"&0xc0=12", value.RelInt{}, 6},
+		{"&0xc0", value.RelInt{}, 5},
+		{"&0xc0<0x80", value.RelInt{}, 5},
+		{"&0xc0=", value.RelInt{}, 6},
+		{"&=1", value.RelInt{}, 1},
+		{"&", value.RelInt{}, 1},
+		{"&0xc0=0x80 x", value.RelInt{}, 11},
+		{"!&1=1", value.RelInt{}, 1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
@@ -123,6 +166,32 @@ func TestParseRelInt(t *testing.T) {
 				t.Errorf("ParseRelInt(%q) = %+v, want %+v", tt.in, got, tt.want)
 			}
 		})
+	}
+}
+
+// TestParseRelIntSuricataVectors runs the inputs of Suricata 8.0.8's own
+// unit tests for its integer parser (rust/src/detect/uint.rs and the
+// DetectU*Parse tests in src/detect-*.c), leaving out the ones that fail
+// only for overflowing a u8, which ParseRelInt does not know the width of.
+func TestParseRelIntSuricataVectors(t *testing.T) {
+	accept := []string{
+		"&0x40!=0", "&0xc0=0x80", "0x100", "0xFF", "0xff", "!1-6", " 2kb",
+		"> 3MB", "3", "5", ">3", "<44",
+		"   12 ", "   8 ", "  8  <>  20 ", "  8  <> 20  ", "  8 ", "  >  8  ",
+		"  >  8 ", " 1 <> 3 ", " 5 <> 10 ", " < 10  ", " > 10 ", "! 1", "!1",
+		"1", "10", "1<>3", "5<>10", "8", "8<>20", "<   12 ", "<100", "<8",
+		"> 2 ", ">10", ">8",
+	}
+	reject := []string{"&0xc0=12", "", "8<<20", "> 8 <> 20"}
+	for _, s := range accept {
+		if _, err := value.ParseRelInt(s); err != nil {
+			t.Errorf("ParseRelInt(%q): %v; Suricata accepts it", s, err)
+		}
+	}
+	for _, s := range reject {
+		if _, err := value.ParseRelInt(s); err == nil {
+			t.Errorf("ParseRelInt(%q) succeeded; Suricata rejects it", s)
+		}
 	}
 }
 

@@ -45,8 +45,9 @@ const (
 	// KindIntOrVar is a signed decimal integer or a byte_extract variable:
 	// depth, offset, distance, within.
 	KindIntOrVar
-	// KindRelInt is an integer with an optional relational operator or a
-	// range: dsize, bsize.
+	// KindRelInt is an integer with an optional relational operator, a
+	// range or, from Suricata 8, a bitmask test, its numbers decimal or
+	// in Suricata hex or with a size unit: dsize, bsize.
 	KindRelInt
 	// KindUrilen is a KindRelInt value followed by an optional ",norm" or
 	// ",raw": urilen.

@@ -1,0 +1,11 @@
+# lint: dialect=suricata
+# The integer syntax Suricata 8 adds: hex, size units, negated ranges and
+# bitmask tests.
+alert http any any -> any any (msg:"a"; file.data; bsize:>0x10; content:"x"; sid:1; rev:1;)
+alert http any any -> any any (msg:"b"; filesize:>10MB; sid:2; rev:1;)
+alert tcp any any -> any any (msg:"c"; dsize:!1-6; sid:3; rev:1;)
+alert http any any -> any any (msg:"d"; urilen:&0xf0=0x10,raw; sid:4; rev:1;)
+alert icmp any any -> any any (msg:"e"; itype:0x8; sid:5; rev:1;)
+alert ftp any any -> any any (msg:"f"; ftp.dynamic_port:&0xff00!=0; sid:6; rev:1;)
+# expect: value-invalid error "dsize: bitmask value has bits outside the mask"
+alert tcp any any -> any any (msg:"g"; dsize:&0xc0=12; sid:7; rev:1;)
