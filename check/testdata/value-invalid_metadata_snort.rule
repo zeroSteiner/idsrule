@@ -1,0 +1,4 @@
+# lint: dialect=snort2
+# expect: value-invalid warning "metadata: empty metadata entry"
+alert tcp any any -> any any (msg:"a"; metadata:created_at 2024_01_01, , updated_at 2024_01_02; sid:1000001; rev:1;)
+alert tcp any any -> any any (msg:"b"; metadata:created_at 2024_01_01, updated_at 2024_01_02; sid:1000002; rev:1;)

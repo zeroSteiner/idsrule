@@ -74,10 +74,14 @@ func checkValue(ctx *Context, o *cst.Option, k dialect.Keyword) {
 	var ve *value.Error
 	switch {
 	case errors.As(err, &ve):
-		d := ctx.Report(ctx.ValueSpanAt(o, off+ve.Off), "%s: %s", k.Name, ve.Msg)
-		if k.Kind == dialect.KindMetadata && strings.Contains(ve.Msg, "empty") {
+		emptyMetadata := k.Kind == dialect.KindMetadata && strings.Contains(ve.Msg, "empty")
+		if emptyMetadata && ctx.Dialect == dialect.Suricata {
 			// Suricata skips an empty metadata entry rather than
-			// rejecting the rule.
+			// rejecting the rule; metadata-entry-dropped reports it.
+			return
+		}
+		d := ctx.Report(ctx.ValueSpanAt(o, off+ve.Off), "%s: %s", k.Name, ve.Msg)
+		if emptyMetadata {
 			d.Severity = diag.SeverityWarning
 		}
 		return

@@ -1,0 +1,2 @@
+# lint: dialect=snort2
+alert tcp any any -> any any (msg:"a"; metadata: policy balanced-ips drop, variant; sid:1000001; rev:1;)
