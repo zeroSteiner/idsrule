@@ -30,10 +30,11 @@ type droppedEntry struct {
 // Suricata's DetectMetadataParse skips. It splits s at every ',' and drops
 // an entry that is empty, as strtok_r does, or, once the blanks before it
 // are skipped, has no ' ' or nothing but blanks after its first ' ': the
-// key ends at the first space, never at a tab.
+// key ends at the first space, never at a tab. A run of empty entries, such
+// as the two around a lone ',', is returned once, as its first entry.
 func droppedMetadataEntries(s string) []droppedEntry {
 	var out []droppedEntry
-	start := 0
+	start, inEmptyRun := 0, false
 	for i := 0; i <= len(s); i++ {
 		if i < len(s) && s[i] != ',' {
 			continue
@@ -42,9 +43,12 @@ func droppedMetadataEntries(s string) []droppedEntry {
 		lead := len(entry) - len(strings.TrimLeft(entry, " \t"))
 		text := strings.TrimRight(entry[lead:], " \t")
 		_, val, found := strings.Cut(entry[lead:], " ")
-		if !found || strings.TrimLeft(val, " \t") == "" {
+		switch {
+		case text == "" && inEmptyRun:
+		case !found || strings.TrimLeft(val, " \t") == "":
 			out = append(out, droppedEntry{off: start + lead, n: len(text), text: text})
 		}
+		inEmptyRun = text == ""
 		start = i + 1
 	}
 	return out
@@ -57,8 +61,10 @@ func checkMetadataEntryDropped(ctx *Context) {
 	for _, r := range ctx.Tree.Rules() {
 		for _, o := range r.OptionsNamed("metadata") {
 			logical, at := o.LogicalValue()
-			if logical == "" {
-				continue // syntax-missing-value reports it
+			if logical == "" || logical[0] == '"' {
+				// syntax-missing-value reports an empty value; Suricata
+				// refuses a quoted one outright, so nothing is dropped.
+				continue
 			}
 			for _, e := range droppedMetadataEntries(logical) {
 				span := entrySpan(o, at, e)
@@ -76,8 +82,8 @@ func checkMetadataEntryDropped(ctx *Context) {
 }
 
 // entrySpan is the source span of entry e of o's logical value, mapped
-// with at; an empty entry gets the one-byte span of the ',' or the end of
-// the value that follows it.
+// with at. An empty entry gets the one-byte span of the ',' that ends it,
+// or, when it is the last entry, the empty span at the end of the value.
 func entrySpan(o *cst.Option, at func(int) int, e droppedEntry) source.Span {
 	start := at(e.off)
 	if e.n == 0 {
