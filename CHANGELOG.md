@@ -8,6 +8,12 @@ Before v1 the API may change in any minor release.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-18
+
+Reports the metadata entries Suricata drops without a word. In
+Suricata files an empty metadata entry moves from `value-invalid` to the
+new check; see Changed.
+
 ### Added
 
 - The `metadata-entry-dropped` check (warning, Suricata only) reports a
@@ -371,7 +377,8 @@ the module follows the engines:
   (`bsize`, `absent`) apply to the active sticky buffer and must follow
   one.
 
-[Unreleased]: https://github.com/zeroSteiner/idsrule/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/zeroSteiner/idsrule/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/zeroSteiner/idsrule/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/zeroSteiner/idsrule/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/zeroSteiner/idsrule/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/zeroSteiner/idsrule/releases/tag/v0.1.0
