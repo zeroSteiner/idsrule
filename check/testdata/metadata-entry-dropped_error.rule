@@ -1,0 +1,3 @@
+# lint: dialect=suricata severity=metadata-entry-dropped:error
+# expect: metadata-entry-dropped error "metadata entry "variant" has no value"
+alert http any any -> any any (msg:"a"; metadata: deployment Datacenter, variant; sid:1; rev:1;)

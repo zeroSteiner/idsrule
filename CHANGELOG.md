@@ -8,6 +8,30 @@ Before v1 the API may change in any minor release.
 
 ## [Unreleased]
 
+### Added
+
+- The `metadata-entry-dropped` check (warning, Suricata only) reports a
+  metadata entry that Suricata drops without a word, so that it never
+  reaches the alert's metadata in eve.json: one with no value
+  (`metadata: deployment Datacenter, variant;`), one whose key and value
+  are separated by a tab (Suricata splits them only at a space), and an
+  empty one (`a b,, c d` or a trailing comma; a run of empty entries is
+  reported once). A quoted metadata value is left alone: Suricata refuses
+  that rule outright. Stricter parsers also refuse most such rules (gonids
+  fails on an entry with no space in it); raise the check to an error
+  with `Selection.Severity` to keep rules loadable by them.
+
+### Changed
+
+- In Suricata files, an empty metadata entry is reported by
+  `metadata-entry-dropped` instead of `value-invalid`, with the message
+  "empty metadata entry; Suricata drops it". The finding is still a
+  warning, but every empty entry of a value is reported now, not only the
+  first, and a selection that disables `value-invalid` or overrides its
+  severity no longer affects it. Snort 2.9 files are unchanged.
+- `dialect-unknown` counts one more skipped check, as the new check needs
+  a dialect.
+
 ## [0.3.0] - 2026-10-30
 
 Suricata 8 support. The tables now cover every keyword Suricata 7.0 and

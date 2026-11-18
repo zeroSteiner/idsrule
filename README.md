@@ -294,6 +294,7 @@ selected.
 | `keyword-unknown` | warning | no | no | no | an option keyword is not known to any dialect |
 | `keyword-version` | error | no | yes | no | an option keyword does not exist in the release of the dialect the rules are written for: it came later or was removed (with no release set, a keyword that some release removed is a warning, and one that no release has an error) |
 | `keyword-wrong-dialect` | error | no | yes | no | an option keyword exists only in the other dialect |
+| `metadata-entry-dropped` | warning | no | yes | no | a Suricata metadata entry is empty or has no value after a space (a lone key such as "variant", or a key and value separated by a tab), which Suricata drops without a word, so it never reaches the alert's metadata |
 | `modifier-without-content` | error | no | yes | no | a content modifier appears before any payload match of the rule, or a buffer transform or buffer test before any sticky buffer |
 | `msg-duplicate` | error | no | no | no | two rules of the file have the same msg once normalized with Policy.NormalizeMsg |
 | `msg-missing` | error | no | no | no | a rule has no msg option (a rule with a placeholder sid is left to sid-placeholder-without-msg) |

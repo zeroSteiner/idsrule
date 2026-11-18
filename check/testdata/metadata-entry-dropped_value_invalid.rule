@@ -1,0 +1,9 @@
+# lint: dialect=suricata checks=value-invalid,metadata-entry-dropped
+# expect: metadata-entry-dropped warning "empty metadata entry"
+alert http any any -> any any (msg:"a"; metadata:a b,, c d; sid:1; rev:1;)
+# expect: metadata-entry-dropped warning "empty metadata entry"
+alert http any any -> any any (msg:"b"; metadata:,; sid:2; rev:1;)
+# expect: metadata-entry-dropped @+3 "empty metadata entry"
+# expect: metadata-entry-dropped @+2 "metadata entry "e" has no value"
+# expect: metadata-entry-dropped "empty metadata entry"
+alert http any any -> any any (msg:"c"; metadata: a b,,, c d, e,; sid:3; rev:1;)

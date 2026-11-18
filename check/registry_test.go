@@ -167,6 +167,7 @@ func TestRegisteredSet(t *testing.T) {
 		{"keyword-unknown", diag.SeverityWarning, false, false},
 		{"keyword-version", diag.SeverityError, true, false},
 		{"keyword-wrong-dialect", diag.SeverityError, true, false},
+		{"metadata-entry-dropped", diag.SeverityWarning, true, false},
 		{"modifier-without-content", diag.SeverityError, true, false},
 		{"msg-duplicate", diag.SeverityError, false, false},
 		{"msg-missing", diag.SeverityError, false, false},
